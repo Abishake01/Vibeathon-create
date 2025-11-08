@@ -1,16 +1,117 @@
-# React + Vite
+# AI Web Builder Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A React frontend for the AI Web Builder platform - similar to Bolt.new.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- 🎨 Dark theme UI matching modern design
+- 💬 Interactive chat interface for AI prompts
+- 👁️ Live preview of generated web pages
+- 📱 Responsive two-column layout
+- 🔐 Automatic authentication handling
 
-## React Compiler
+## Setup
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 1. Install Dependencies
 
-## Expanding the ESLint configuration
+```bash
+cd frontend
+npm install
+# or
+pnpm install
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### 2. Configure Environment
+
+Create a `.env` file in the frontend directory:
+
+```env
+VITE_API_URL=http://localhost:8000
+```
+
+### 3. Run Development Server
+
+```bash
+npm run dev
+# or
+pnpm dev
+```
+
+The frontend will be available at `http://localhost:5173` (or the port shown in terminal).
+
+## Usage
+
+1. **Start the backend server** first (see backend README)
+2. **Start the frontend** with `npm run dev`
+3. **Enter a prompt** in the chat input (e.g., "create a coffee shop webpage")
+4. **View the preview** in the right panel once generation completes
+
+## Project Structure
+
+```
+frontend/
+├── src/
+│   ├── components/
+│   │   ├── Header.jsx          # Top navigation bar
+│   │   ├── Header.css
+│   │   ├── ChatPanel.jsx        # Left chat panel
+│   │   ├── ChatPanel.css
+│   │   ├── PreviewPanel.jsx    # Right preview panel
+│   │   └── PreviewPanel.css
+│   ├── services/
+│   │   └── api.js              # API service layer
+│   ├── App.jsx                 # Main app component
+│   ├── App.css
+│   ├── main.jsx
+│   └── index.css
+├── package.json
+└── vite.config.js
+```
+
+## Features in Detail
+
+### Chat Panel
+- Suggestion chips for quick prompts
+- Message history display
+- Loading indicators during AI generation
+- Input field with action buttons
+
+### Preview Panel
+- Live iframe preview of generated pages
+- Placeholder when no project is loaded
+- Footer with help and community links
+
+### Header
+- Project name display
+- Navigation icons (Preview, Code, Database, Settings)
+- Search input
+- Publish button
+- User avatar
+
+## API Integration
+
+The frontend communicates with the backend API through the `api.js` service:
+
+- **Authentication**: Auto-registers/logs in demo user
+- **Projects**: Creates projects from chat prompts
+- **Preview**: Fetches and displays generated web pages
+
+## Development Notes
+
+- Uses Vite for fast development
+- React 19 with hooks
+- Axios for HTTP requests
+- CSS modules for component styling
+- Responsive design for mobile devices
+
+## Troubleshooting
+
+**Preview not loading?**
+- Ensure backend is running on `http://localhost:8000`
+- Check browser console for CORS errors
+- Verify OpenAI API key is set in backend `.env`
+
+**Authentication errors?**
+- Backend database might need to be reset
+- Check backend logs for errors
+- Verify backend is accessible from frontend
