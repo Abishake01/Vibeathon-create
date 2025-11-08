@@ -95,12 +95,47 @@ export const projectsAPI = {
 };
 
 export const aiAPI = {
-  createProject: async (prompt, name = null) => {
-    const response = await api.post('/ai/create-project', {
-      prompt,
-      name,
-    });
-    return response.data;
+  createProject: async (prompt, name = null, onStream = null) => {
+    if (onStream) {
+      // Use streaming endpoint
+      const response = await fetch(`${API_BASE_URL}/ai/create-project-stream`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ prompt, name }),
+      });
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value);
+        const lines = chunk.split('\n');
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(line.slice(6));
+              onStream(data);
+            } catch (e) {
+              console.error('Error parsing stream data:', e);
+            }
+          }
+        }
+      }
+      return null;
+    } else {
+      // Use non-streaming endpoint
+      const response = await api.post('/ai/create-project', {
+        prompt,
+        name,
+      });
+      return response.data;
+    }
   },
 
   getTokens: async () => {

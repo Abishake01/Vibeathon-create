@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './ChatPanel.css';
 
-const ChatPanel = ({ onSendMessage, isLoading, todoList = [], description = '', remainingTokens = null }) => {
+const ChatPanel = ({ onSendMessage, isLoading, todoList = [], description = '', remainingTokens = null, thinkingMessage = '' }) => {
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState([]);
   const messagesEndRef = useRef(null);
+  const [currentThinking, setCurrentThinking] = useState('');
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -15,17 +16,33 @@ const ChatPanel = ({ onSendMessage, isLoading, todoList = [], description = '', 
   }, [messages, isLoading, todoList]);
 
   useEffect(() => {
-    if (description) {
-      setMessages(prev => [
-        ...prev,
-        {
-          type: 'ai',
-          content: description,
-          todoList: todoList
+    if (description && todoList.length > 0) {
+      // Update or add AI message with description and todos
+      setMessages(prev => {
+        const lastMessage = prev[prev.length - 1];
+        if (lastMessage && lastMessage.type === 'ai' && lastMessage.isStreaming) {
+          // Update existing streaming message
+          return prev.map((msg, idx) => 
+            idx === prev.length - 1 
+              ? { ...msg, content: description, todoList: todoList, isStreaming: false }
+              : msg
+          );
+        } else {
+          // Add new message
+          return [...prev, {
+            type: 'ai',
+            content: description,
+            todoList: todoList,
+            isStreaming: false
+          }];
         }
-      ]);
+      });
     }
   }, [description, todoList]);
+
+  useEffect(() => {
+    setCurrentThinking(thinkingMessage);
+  }, [thinkingMessage]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -116,10 +133,17 @@ const ChatPanel = ({ onSendMessage, isLoading, todoList = [], description = '', 
                 <strong>bolt</strong>
                 <span className="thinking-dots">...</span>
               </div>
-              <div className="thinking-indicator">
-                <span className="brain-icon">🧠</span>
-                Thinking...
-              </div>
+              {currentThinking ? (
+                <div className="thinking-indicator">
+                  <span className="brain-icon">🧠</span>
+                  {currentThinking}
+                </div>
+              ) : (
+                <div className="thinking-indicator">
+                  <span className="brain-icon">🧠</span>
+                  Thinking...
+                </div>
+              )}
             </div>
           </div>
         )}

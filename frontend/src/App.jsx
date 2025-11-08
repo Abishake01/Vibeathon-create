@@ -15,6 +15,7 @@ function App() {
   const [todoList, setTodoList] = useState([]);
   const [description, setDescription] = useState('');
   const [remainingTokens, setRemainingTokens] = useState(null);
+  const [thinkingMessage, setThinkingMessage] = useState('');
 
   useEffect(() => {
     // Load token info (no auth needed)
@@ -56,26 +57,76 @@ function App() {
     setIsLoading(true);
     setDescription('');
     setTodoList([]);
+    setCurrentProject(null);
+    setProjectFiles(null);
+    setPreviewUrl(null);
 
     try {
-      // Create project with AI
-      const response = await aiAPI.createProject(message);
-      
-      setCurrentProject({ id: response.project_id });
-      setTodoList(response.todo_list || []);
-      setDescription(response.description || '');
-      setRemainingTokens(response.remaining_tokens);
-      
-      // Load project files
-      await loadProjectFiles(response.project_id);
-      
-      // Update token info
-      await loadTokenInfo();
+      // Use streaming API
+      await aiAPI.createProject(message, null, (streamData) => {
+        switch (streamData.type) {
+          case 'thinking':
+            // Show thinking message
+            setThinkingMessage(streamData.message);
+            break;
+          
+          case 'todo_item':
+            // Add todo item one by one (typing effect)
+            setTodoList(prev => [...prev, streamData.todo]);
+            break;
+          
+          case 'todo_complete':
+            // All todos generated
+            break;
+          
+          case 'description':
+            // Set description
+            setDescription(streamData.description);
+            break;
+          
+          case 'project_created':
+            // Project created
+            setCurrentProject({ id: streamData.project_id });
+            break;
+          
+          case 'task_start':
+            // Task started
+            break;
+          
+          case 'task_complete':
+            // Mark task as completed
+            setTodoList(prev => 
+              prev.map(todo => 
+                todo.id === streamData.task_id 
+                  ? { ...todo, completed: true }
+                  : todo
+              )
+            );
+            break;
+          
+          case 'complete':
+            // All done
+            setCurrentProject({ id: streamData.project_id });
+            setTodoList(streamData.todo_list || []);
+            setDescription(streamData.description || '');
+            setRemainingTokens(streamData.remaining_tokens);
+            setThinkingMessage('');
+            setIsLoading(false);
+            
+            // Load project files
+            loadProjectFiles(streamData.project_id);
+            break;
+          
+          case 'error':
+            alert(`Error: ${streamData.message}`);
+            setIsLoading(false);
+            break;
+        }
+      });
     } catch (error) {
       console.error('Error creating project:', error);
       const errorMessage = error.response?.data?.detail || error.message || 'Failed to create project';
       alert(`Error: ${errorMessage}\n\nPlease ensure:\n1. Backend server is running\n2. Groq API key is configured in backend/.env`);
-    } finally {
       setIsLoading(false);
     }
   };
@@ -102,6 +153,7 @@ function App() {
             todoList={todoList}
             description={description}
             remainingTokens={remainingTokens}
+            thinkingMessage={thinkingMessage}
           />
         </div>
         <div className="right-panel">
