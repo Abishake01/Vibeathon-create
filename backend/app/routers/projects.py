@@ -225,14 +225,20 @@ async def preview_project(
     db: Session = Depends(get_db)
 ):
     """Render the project as a live preview (combine HTML, CSS, JS). No authentication required."""
-    # Verify project exists
+    # Verify project exists - retry once if not found (handles race conditions)
     project = db.query(Project).filter(Project.id == project_id).first()
     
     if not project:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Project not found"
-        )
+        # Retry once after a short delay (handles database commit timing)
+        import asyncio
+        await asyncio.sleep(0.2)
+        project = db.query(Project).filter(Project.id == project_id).first()
+        
+        if not project:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Project not found"
+            )
     
     files = get_all_files(project_id)
     

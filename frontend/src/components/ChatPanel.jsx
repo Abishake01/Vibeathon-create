@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './ChatPanel.css';
 
-const ChatPanel = ({ onSendMessage, isLoading, todoList = [], description = '', remainingTokens = null, thinkingMessage = '' }) => {
+const ChatPanel = ({ onSendMessage, isLoading, todoList = [], description = '', remainingTokens = null, thinkingMessage = '', efficiency = null }) => {
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState([]);
   const messagesEndRef = useRef(null);
@@ -16,15 +16,22 @@ const ChatPanel = ({ onSendMessage, isLoading, todoList = [], description = '', 
   }, [messages, isLoading, todoList]);
 
   useEffect(() => {
-    if (description && todoList.length > 0) {
-      // Update or add AI message with description and todos
+    if (description) {
+      // Update or add AI message with description
       setMessages(prev => {
         const lastMessage = prev[prev.length - 1];
         if (lastMessage && lastMessage.type === 'ai' && lastMessage.isStreaming) {
           // Update existing streaming message
           return prev.map((msg, idx) => 
             idx === prev.length - 1 
-              ? { ...msg, content: description, todoList: todoList, isStreaming: false }
+              ? { ...msg, content: description, isStreaming: false }
+              : msg
+          );
+        } else if (lastMessage && lastMessage.type === 'ai' && !lastMessage.content) {
+          // Update empty AI message
+          return prev.map((msg, idx) => 
+            idx === prev.length - 1 
+              ? { ...msg, content: description }
               : msg
           );
         } else {
@@ -32,13 +39,12 @@ const ChatPanel = ({ onSendMessage, isLoading, todoList = [], description = '', 
           return [...prev, {
             type: 'ai',
             content: description,
-            todoList: todoList,
             isStreaming: false
           }];
         }
       });
     }
-  }, [description, todoList]);
+  }, [description]);
 
   useEffect(() => {
     setCurrentThinking(thinkingMessage);
@@ -100,17 +106,17 @@ const ChatPanel = ({ onSendMessage, isLoading, todoList = [], description = '', 
               <div className="message-content ai-message">
                 <div className="ai-name">
                   <strong>bolt</strong>
-                  <span className="thinking-dots">...</span>
+                  {!msg.content && !msg.todoList && <span className="thinking-dots">...</span>}
                 </div>
-                <div className="ai-text">{msg.content}</div>
-                {msg.todoList && msg.todoList.length > 0 && (
+                {msg.content && <div className="ai-text">{msg.content}</div>}
+                {todoList && todoList.length > 0 && (
                   <div className="todo-list">
                     <div className="todo-header">
-                      <span>{msg.todoList.length} actions taken</span>
+                      <span>{todoList.length} actions taken</span>
                       <span className="todo-toggle">▼</span>
                     </div>
                     <ul className="todo-items">
-                      {msg.todoList.map((todo) => (
+                      {todoList.map((todo) => (
                         <li key={todo.id} className={`todo-item ${todo.completed ? 'completed' : ''}`}>
                           <span className="todo-checkbox">
                             {todo.completed ? '✓' : '○'}
@@ -151,9 +157,9 @@ const ChatPanel = ({ onSendMessage, isLoading, todoList = [], description = '', 
       </div>
 
       <div className="chat-input-container">
-        {remainingTokens !== null && (
-          <div className="token-info">
-            Remaining tokens: {remainingTokens.toLocaleString()}
+        {efficiency && (
+          <div className="efficiency-info" style={{ padding: '8px', fontSize: '12px', color: '#666' }}>
+            ⚡ Efficiency: {efficiency.percent}% saved ({efficiency.saved.toLocaleString()} tokens)
           </div>
         )}
         <form onSubmit={handleSubmit} className="chat-input-form">

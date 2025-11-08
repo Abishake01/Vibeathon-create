@@ -15,6 +15,7 @@ function App() {
   const [todoList, setTodoList] = useState([]);
   const [description, setDescription] = useState('');
   const [remainingTokens, setRemainingTokens] = useState(null);
+  const [efficiency, setEfficiency] = useState(null);
   const [thinkingMessage, setThinkingMessage] = useState('');
 
   useEffect(() => {
@@ -39,13 +40,36 @@ function App() {
   };
 
   const loadProjectFiles = async (projectId) => {
+    if (!projectId) {
+      console.error('No project ID provided');
+      return;
+    }
+    
     try {
       setIsLoading(true);
+      // First verify project exists
+      try {
+        await projectsAPI.get(projectId);
+      } catch (error) {
+        console.error('Project not found, retrying...', error);
+        // Retry after a short delay
+        setTimeout(() => {
+          loadProjectFiles(projectId);
+        }, 1000);
+        return;
+      }
+      
       const data = await projectsAPI.getFiles(projectId);
       setProjectFiles(data.files);
       setPreviewUrl(projectsAPI.getPreviewUrl(projectId));
     } catch (error) {
       console.error('Error loading project files:', error);
+      // Retry once after delay
+      if (projectId) {
+        setTimeout(() => {
+          loadProjectFiles(projectId);
+        }, 2000);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -70,9 +94,42 @@ function App() {
             setThinkingMessage(streamData.message);
             break;
           
+          case 'conversation':
+            // User just wants to chat or get ideas
+            setThinkingMessage('');
+            setIsLoading(false);
+            // Add conversation message to chat
+            setDescription(streamData.message || 'How can I help you create a webpage?');
+            break;
+          
+          case 'todo_typing':
+            // Update typing todo item
+            setTodoList(prev => {
+              const existing = prev.find(t => t.id === streamData.todo_id);
+              if (existing) {
+                return prev.map(t => 
+                  t.id === streamData.todo_id 
+                    ? { ...t, task: streamData.partial_task }
+                    : t
+                );
+              } else {
+                return [...prev, { id: streamData.todo_id, task: streamData.partial_task, completed: false }];
+              }
+            });
+            break;
+          
           case 'todo_item':
-            // Add todo item one by one (typing effect)
-            setTodoList(prev => [...prev, streamData.todo]);
+            // Add complete todo item
+            setTodoList(prev => {
+              const existing = prev.find(t => t.id === streamData.todo.id);
+              if (existing) {
+                return prev.map(t => 
+                  t.id === streamData.todo.id ? streamData.todo : t
+                );
+              } else {
+                return [...prev, streamData.todo];
+              }
+            });
             break;
           
           case 'todo_complete':
@@ -85,8 +142,12 @@ function App() {
             break;
           
           case 'project_created':
-            // Project created
+            // Project created - set project and load files after a delay
             setCurrentProject({ id: streamData.project_id });
+            // Wait a bit for database to be ready
+            setTimeout(() => {
+              loadProjectFiles(streamData.project_id);
+            }, 500);
             break;
           
           case 'task_start':
@@ -104,17 +165,33 @@ function App() {
             );
             break;
           
+          case 'code_generated':
+            // Code has been generated and saved
+            if (currentProject?.id) {
+              // Reload files to show the generated code
+              setTimeout(() => {
+                loadProjectFiles(currentProject.id);
+              }, 500);
+            }
+            break;
+          
           case 'complete':
             // All done
             setCurrentProject({ id: streamData.project_id });
             setTodoList(streamData.todo_list || []);
             setDescription(streamData.description || '');
             setRemainingTokens(streamData.remaining_tokens);
+            setEfficiency({
+              saved: streamData.efficiency_saved || 0,
+              percent: streamData.efficiency_percent || 0
+            });
             setThinkingMessage('');
             setIsLoading(false);
             
-            // Load project files
-            loadProjectFiles(streamData.project_id);
+            // Load project files after a short delay to ensure files are saved
+            setTimeout(() => {
+              loadProjectFiles(streamData.project_id);
+            }, 500);
             break;
           
           case 'error':
@@ -154,6 +231,7 @@ function App() {
             description={description}
             remainingTokens={remainingTokens}
             thinkingMessage={thinkingMessage}
+            efficiency={efficiency}
           />
         </div>
         <div className="right-panel">

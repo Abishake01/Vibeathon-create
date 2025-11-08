@@ -31,7 +31,7 @@ class ProjectUpdate(BaseModel):
 
 class ProjectResponse(BaseModel):
     id: str
-    user_id: str
+    user_id: Optional[str] = None
     name: str
     description: Optional[str]
     created_at: datetime
@@ -87,4 +87,10 @@ class TokenInfo(BaseModel):
     remaining: Optional[int]
     limit: int
     used: int
+
+
+class IntentResponse(BaseModel):
+    intent: str  # "create_webpage" | "conversation" | "ideas"
+    confidence: float
+    response: Optional[str] = None
 
