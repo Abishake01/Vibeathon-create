@@ -18,7 +18,7 @@ function App() {
   const [tokenLimit, setTokenLimit] = useState(null);
   const [efficiency, setEfficiency] = useState(null);
   const [thinkingMessage, setThinkingMessage] = useState('');
-  const [aiProvider, setAiProvider] = useState('groq');
+  const [aiProvider, setAiProvider] = useState('langchain');
   const [activeCodeFile, setActiveCodeFile] = useState('index.html');
   const loadingFilesRef = useRef(new Set()); // Track which project IDs are currently loading
 

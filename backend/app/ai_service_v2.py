@@ -163,18 +163,37 @@ CRITICAL REQUIREMENTS FOR PREMIUM UI (LIKE BOLT.NEW):
 3. Include proper viewport meta tag: <meta name="viewport" content="width=device-width, initial-scale=1.0">
 4. Include Google Fonts: <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
 5. Include Font Awesome: <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-6. STRUCTURE MUST INCLUDE:
-   - Card-based layouts: <div class="card">, <div class="feature-card">, <div class="testimonial-card">
-   - Containers: <div class="container"> for proper alignment
-   - Two-column hero section: Left for text, right for image/graphic
-   - Grid layouts for features/cards
-   - Proper sections with semantic HTML
+6. If user requests Tailwind CSS: Include Tailwind CDN: <script src="https://cdn.tailwindcss.com"></script> in <head> and use Tailwind utility classes throughout HTML
+7. STRUCTURE MUST BE SPLIT INTO CLEAR SECTIONS:
+   - HEADER/NAVBAR (CRITICAL - MUST BE FULLY FUNCTIONAL):
+     * <header><nav class="navbar"> with logo and navigation links</nav></header>
+     * Navigation MUST work on all devices (desktop, tablet, mobile)
+     * Include hamburger menu for mobile: <button class="menu-toggle"><i class="fas fa-bars"></i></button>
+     * Navigation structure: <ul class="nav-menu"><li><a href="#section">Link</a></li></ul>
+     * Include JavaScript for mobile menu toggle functionality
+   - BODY/MAIN CONTENT: <main> with hero section, features, and other content sections</main>
+   - FOOTER: <footer> with links, copyright, and additional information
+   - Each section should be clearly separated and well-structured
 7. MODERN LAYOUT PATTERNS:
-   - Hero section with headline, description, and CTA buttons
-   - Features section with cards in grid
-   - Navigation bar with logo and links
-   - Footer with links and information
-   - Use placeholder images: <img src="https://via.placeholder.com/600x400" alt="Description">
+   - HEADER (CRITICAL - MUST BE FUNCTIONAL): <header><nav class="navbar"> with logo, hamburger menu button (.menu-toggle), and navigation links in <ul class="nav-menu"></ul></nav></header>
+   - BODY: <main> with hero section, features section with cards in grid
+   - FOOTER: <footer> with links, social media, copyright
+   - ALWAYS include REAL IMAGES: Use public image URLs from free image services
+   - Image URLs must be RELATED to the content (e.g., coffee images for coffee shop, tech images for tech page)
+   - Use proper image URLs from these free image sources:
+     * Unsplash: https://images.unsplash.com/photo-... or https://unsplash.com/photos/...
+     * Pexels: https://images.pexels.com/photos/... or https://www.pexels.com/photo/...
+     * Pixabay: https://pixabay.com/photos/... or direct image URLs
+     * LibreShot: https://libreshot.com/... or direct image URLs
+     * Wikimedia Commons: https://commons.wikimedia.org/wiki/File:... or direct image URLs
+     * Flickr Creative Commons: https://live.staticflickr.com/... or https://www.flickr.com/photos/...
+   - CRITICAL - IMAGE SIZING: All images MUST have proper sizing attributes to prevent overflow:
+     * Add style="width: 100%; max-width: 100%; height: auto; object-fit: cover;" to all <img> tags
+     * Or use width="100%" and height="auto" attributes
+     * This prevents images from overflowing the page and causing horizontal/vertical scrolling
+   - NEVER use empty images, broken links, or placeholder.com
+   - Include at least 2-3 images: hero image, feature images, or section images
+   - Example URLs: https://images.unsplash.com/photo-1509042239860-f550ce710b93 (coffee), https://images.pexels.com/photos/2253275/pexels-photo-2253275.jpeg (coffee)
 8. DESIGN MUST BE PREMIUM QUALITY:
    - Include multiple card elements for features, testimonials, products
    - Use Font Awesome icons: <i class="fas fa-..."></i>
@@ -191,6 +210,9 @@ Return ONLY the HTML code as a string. Do not include markdown code blocks, back
         theme = project_requirements.get("theme", "modern")
         colors = project_requirements.get("colors", [])
         
+        # Check if user wants Tailwind CSS
+        use_tailwind = "tailwind" in prompt.lower() or "tailwind css" in prompt.lower()
+        
         color_scheme = ""
         if colors:
             color_scheme = f"\nUser requested colors: {', '.join(colors)}. Use these colors."
@@ -202,27 +224,60 @@ Return ONLY the HTML code as a string. Do not include markdown code blocks, back
             elif "coffee" in prompt.lower():
                 color_scheme = "\nUse warm coffee shop colors: #8B4513, #D2691E, #F5F5DC, #FFFFFF, #CD853F"
         
+        tailwind_note = ""
+        if use_tailwind:
+            tailwind_note = "\n\nCRITICAL: User requested Tailwind CSS. Include <script src=\"https://cdn.tailwindcss.com\"></script> in <head> and use Tailwind utility classes (flex, grid, p-4, m-2, bg-blue-500, text-white, rounded-lg, etc.) throughout the HTML instead of custom CSS classes."
+        
+        # Add design reference if provided
+        design_reference_note = ""
+        if "design_reference" in project_requirements and project_requirements.get("design_reference"):
+            design_ref = project_requirements.get("design_reference")
+            design_reference_note = f"\n\nDESIGN REFERENCE: Follow the design style of {design_ref}. Use similar layout patterns, color schemes, and visual elements."
+        
+        if "design_examples" in project_requirements and project_requirements.get("design_examples"):
+            examples = project_requirements.get("design_examples", [])
+            design_reference_note += f"\n\nDESIGN EXAMPLES TO FOLLOW:\n" + "\n".join([f"- {ex}" for ex in examples])
+        
         context = f"""Create a PREMIUM, PROFESSIONAL HTML structure for: {prompt} - Design it like Bolt.new.
 
 PROJECT TYPE: {project_type}
 THEME: {theme}
 {color_scheme}
+{tailwind_note}
+{design_reference_note}
 
 CRITICAL UI REQUIREMENTS (LIKE BOLT.NEW):
+- SPLIT INTO CLEAR SECTIONS:
+  * HEADER/NAVBAR (CRITICAL - MUST BE FULLY FUNCTIONAL):
+    - <header><nav class="navbar"> with logo and navigation links</nav></header>
+    - Navigation MUST work on all devices (desktop, tablet, mobile)
+    - Include hamburger menu button for mobile: <button class="menu-toggle"><i class="fas fa-bars"></i></button>
+    - Navigation structure: <ul class="nav-menu"><li><a href="#home">Home</a></li><li><a href="#about">About</a></li></ul>
+    - All navigation links must be clickable and functional
+    - Mobile menu must toggle open/close with JavaScript
+  * BODY/MAIN: <main> with hero section, features, content sections</main>
+  * FOOTER: <footer> with links, social media, copyright</footer>
 - CARD-BASED LAYOUTS: Create cards for features, testimonials, products (use .card, .feature-card classes)
-- TWO-COLUMN HERO: Left column for text (headline, description, buttons), right column for image/graphic
+- TWO-COLUMN HERO: Left column for text (headline, description, buttons), right column for REAL IMAGE
 - PROPER ALIGNMENT: Use .container class, flexbox, and grid for perfect alignment
-- MODERN STRUCTURE:
-  * Header with logo and navigation
-  * Hero section with compelling headline, description, and CTA buttons (primary and secondary)
-  * Features section with cards in a grid layout
-  * Additional content sections as needed
-  * Footer with links and information
-- Include placeholder images: <img src="https://via.placeholder.com/600x400" alt="Description">
+- ALWAYS INCLUDE REAL IMAGES:
+  * Use public image URLs from free image services (all free for commercial use, no attribution required)
+  * Images must be RELATED to the content (coffee images for coffee shop, tech images for tech page, etc.)
+  * Use URLs from these free image sources:
+    - Unsplash: https://images.unsplash.com/photo-... or https://unsplash.com/photos/...
+    - Pexels: https://images.pexels.com/photos/... or https://www.pexels.com/photo/...
+    - Pixabay: https://pixabay.com/photos/... or direct image URLs
+    - LibreShot: https://libreshot.com/... or direct image URLs
+    - Wikimedia Commons: https://commons.wikimedia.org/wiki/File:... or direct image URLs
+    - Flickr Creative Commons: https://live.staticflickr.com/... or https://www.flickr.com/photos/...
+  * Include at least 2-3 images: hero image, feature images, section images
+  * NEVER use empty images, broken links, or placeholder.com
+  * Example for coffee shop: https://images.unsplash.com/photo-1509042239860-f550ce710b93 or https://images.pexels.com/photos/2253275/pexels-photo-2253275.jpeg
+  * Example for tech: https://images.unsplash.com/photo-1518770660439-4636190af475 or https://images.pexels.com/photos/1181244/pexels-photo-1181244.jpeg
 - Use Font Awesome icons throughout
 - Create multiple CTA buttons with different styles
 - Add badges, stats cards, or testimonials if relevant
-- Use semantic HTML5 with proper class names (hero, card, feature-card, container, section, etc.)
+- Use semantic HTML5 with proper class names (navbar, hero, card, feature-card, container, section, footer, etc.)
 - Make it look like a premium, modern website with professional layout and structure like Bolt.new creates"""
         
     elif code_type == "css":
@@ -246,7 +301,16 @@ CRITICAL REQUIREMENTS FOR PREMIUM UI (LIKE BOLT.NEW):
 5. PERFECT ALIGNMENT AND LAYOUT (CRITICAL - MUST IMPLEMENT ALL):
    - .container {{ max-width: 1200px; margin: 0 auto; padding: 0 2rem; }}
    - Two-column hero: display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center;
-   - Navigation: display: flex; justify-content: space-between; align-items: center; width: 100%;
+   - Navigation (CRITICAL - MUST BE RESPONSIVE AND FUNCTIONAL):
+     * .navbar {{ display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 1rem 2rem; position: relative; }}
+     * .nav-menu {{ display: flex; list-style: none; gap: 2rem; margin: 0; padding: 0; }}
+     * Mobile responsive: @media (max-width: 768px) {{
+       .menu-toggle {{ display: block; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: inherit; }}
+       .nav-menu {{ display: none; position: absolute; top: 100%; left: 0; width: 100%; background: white; flex-direction: column; padding: 2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 1000; }}
+       .nav-menu.active {{ display: flex; }}
+     }}
+     * Desktop: @media (min-width: 769px) {{ .menu-toggle {{ display: none; }} .nav-menu {{ display: flex; }} }}
+     * Smooth transitions: .nav-menu {{ transition: all 0.3s ease; }}
    - Center headings: text-align: center; for h1, h2, h3 in hero and sections
    - Left align paragraphs: text-align: left; for body text and descriptions
    - Justify text: text-align: justify; for longer paragraphs if needed
@@ -287,6 +351,15 @@ CRITICAL REQUIREMENTS FOR PREMIUM UI (LIKE BOLT.NEW):
     - Rounded corners: 8px to 16px
     - Gradient backgrounds for hero sections
     - Overlay effects for images
+13. IMAGE SIZING (CRITICAL - PREVENT OVERFLOW):
+    - All images MUST have proper sizing to prevent overflow:
+      * img {{ width: 100%; max-width: 100%; height: auto; object-fit: cover; }}
+      * Or use specific dimensions: width: 600px; max-width: 100%; height: auto;
+      * Prevent horizontal scrolling: body {{ max-width: 100vw; overflow-x: hidden; }}
+      * Prevent vertical overflow: Use proper height constraints
+    - Responsive images: Use max-width: 100%; height: auto; for all images
+    - Hero images: Can use height: 500px; or height: 60vh; with object-fit: cover;
+    - Container images: width: 100%; max-width: 100%; height: auto;
 
 Return ONLY the CSS code as a string. Do not include markdown code blocks, backticks, or explanations."""
         
@@ -331,7 +404,16 @@ CRITICAL UI REQUIREMENTS (LIKE BOLT.NEW):
    - Center headings: text-align: center; for h1, h2, h3 in hero and sections
    - Left align paragraphs: text-align: left; for body text and descriptions
    - Justify text: text-align: justify; for longer paragraphs
-   - Navigation: display: flex; justify-content: space-between; align-items: center; width: 100%;
+   - Navigation (CRITICAL - MUST BE RESPONSIVE AND FUNCTIONAL):
+     * .navbar {{ display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 1rem 2rem; position: relative; }}
+     * .nav-menu {{ display: flex; list-style: none; gap: 2rem; margin: 0; padding: 0; }}
+     * Mobile responsive: @media (max-width: 768px) {{
+       .menu-toggle {{ display: block; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: inherit; }}
+       .nav-menu {{ display: none; position: absolute; top: 100%; left: 0; width: 100%; background: white; flex-direction: column; padding: 2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 1000; }}
+       .nav-menu.active {{ display: flex; }}
+     }}
+     * Desktop: @media (min-width: 769px) {{ .menu-toggle {{ display: none; }} .nav-menu {{ display: flex; }} }}
+     * Smooth transitions: .nav-menu {{ transition: all 0.3s ease; }}
    - Hero alignment: display: flex; or grid with align-items: center; justify-content: space-between; or center;
    - Button alignment: display: flex; gap: 1rem; justify-content: flex-start; or center;
    - Flexbox centering: display: flex; justify-content: center; align-items: center; for perfect centering
@@ -382,6 +464,13 @@ CRITICAL REQUIREMENTS:
 8. Handle user interactions properly (click, hover, input events)
 9. Use event delegation where appropriate
 10. Make code efficient and performant
+11. NAVBAR FUNCTIONALITY (CRITICAL - MUST IMPLEMENT):
+    - Mobile menu toggle: Add event listener to menu toggle button
+    - Toggle mobile menu: Show/hide navigation menu on mobile devices
+    - Close menu on link click: Close mobile menu when navigation link is clicked
+    - Smooth animations: Add smooth open/close animations for mobile menu
+    - Example: document.querySelector('.menu-toggle').addEventListener('click', () => { nav.classList.toggle('active'); });
+    - Always include navbar functionality even if project doesn't require other JS
 
 Return ONLY the JavaScript code as a string. Do not include markdown code blocks, backticks, or explanations."""
         
@@ -404,6 +493,23 @@ CRITICAL REQUIREMENTS:
 - Proper event handling
 - Error handling
 - Well-organized, modular code
+- NAVBAR FUNCTIONALITY (CRITICAL - MUST IMPLEMENT):
+  * Mobile menu toggle: Add click event to .menu-toggle button
+  * Toggle navigation menu: Show/hide .nav-menu on mobile
+  * Close menu on link click: Close mobile menu when nav links are clicked
+  * Smooth animations: Add CSS transitions for menu open/close
+  * Example code:
+    const menuToggle = document.querySelector('.menu-toggle');
+    const navMenu = document.querySelector('.nav-menu');
+    menuToggle.addEventListener('click', () => {{
+      navMenu.classList.toggle('active');
+    }});
+    // Close menu when link is clicked
+    document.querySelectorAll('.nav-menu a').forEach(link => {{
+      link.addEventListener('click', () => {{
+        navMenu.classList.remove('active');
+      }});
+    }});
 - Add interactive features based on the project type"""
     
     # Generate code
@@ -445,6 +551,9 @@ def generate_html_code(prompt: str, project_requirements: Dict, provider: AIProv
     theme = project_requirements.get("theme", "modern")
     colors = project_requirements.get("colors", [])
     
+    # Check if user wants Tailwind CSS
+    use_tailwind = "tailwind" in prompt.lower() or "tailwind css" in prompt.lower()
+    
     color_scheme = ""
     if colors:
         color_scheme = f"\nUser requested colors: {', '.join(colors)}. Use these colors."
@@ -456,6 +565,10 @@ def generate_html_code(prompt: str, project_requirements: Dict, provider: AIProv
         elif "coffee" in prompt.lower():
             color_scheme = "\nUse warm coffee shop colors: #8B4513, #D2691E, #F5F5DC, #FFFFFF, #CD853F"
     
+    tailwind_note = ""
+    if use_tailwind:
+        tailwind_note = "\n\nCRITICAL: User requested Tailwind CSS. Include <script src=\"https://cdn.tailwindcss.com\"></script> in <head> and use Tailwind utility classes (flex, grid, p-4, m-2, bg-blue-500, text-white, rounded-lg, etc.) throughout the HTML instead of custom CSS classes."
+    
     system_prompt = """You are an expert web developer. Generate PREMIUM, PROFESSIONAL HTML code like Bolt.new with CARD-BASED LAYOUTS and MODERN STRUCTURE.
 
 CRITICAL REQUIREMENTS FOR PREMIUM UI (LIKE BOLT.NEW):
@@ -464,18 +577,37 @@ CRITICAL REQUIREMENTS FOR PREMIUM UI (LIKE BOLT.NEW):
 3. Include proper viewport meta tag: <meta name="viewport" content="width=device-width, initial-scale=1.0">
 4. Include Google Fonts: <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
 5. Include Font Awesome: <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-6. STRUCTURE MUST INCLUDE:
-   - Card-based layouts: <div class="card">, <div class="feature-card">, <div class="testimonial-card">
-   - Containers: <div class="container"> for proper alignment
-   - Two-column hero section: Left for text, right for image/graphic
-   - Grid layouts for features/cards
-   - Proper sections with semantic HTML
+6. If user requests Tailwind CSS: Include Tailwind CDN: <script src="https://cdn.tailwindcss.com"></script> in <head> and use Tailwind utility classes throughout HTML
+7. STRUCTURE MUST BE SPLIT INTO CLEAR SECTIONS:
+   - HEADER/NAVBAR (CRITICAL - MUST BE FULLY FUNCTIONAL):
+     * <header><nav class="navbar"> with logo and navigation links</nav></header>
+     * Navigation MUST work on all devices (desktop, tablet, mobile)
+     * Include hamburger menu for mobile: <button class="menu-toggle"><i class="fas fa-bars"></i></button>
+     * Navigation structure: <ul class="nav-menu"><li><a href="#section">Link</a></li></ul>
+     * Include JavaScript for mobile menu toggle functionality
+   - BODY/MAIN CONTENT: <main> with hero section, features, and other content sections</main>
+   - FOOTER: <footer> with links, copyright, and additional information
+   - Each section should be clearly separated and well-structured
 7. MODERN LAYOUT PATTERNS:
-   - Hero section with headline, description, and CTA buttons
-   - Features section with cards in grid
-   - Navigation bar with logo and links
-   - Footer with links and information
-   - Use placeholder images: <img src="https://via.placeholder.com/600x400" alt="Description">
+   - HEADER (CRITICAL - MUST BE FUNCTIONAL): <header><nav class="navbar"> with logo, hamburger menu button (.menu-toggle), and navigation links in <ul class="nav-menu"></ul></nav></header>
+   - BODY: <main> with hero section, features section with cards in grid
+   - FOOTER: <footer> with links, social media, copyright
+   - ALWAYS include REAL IMAGES: Use public image URLs from free image services
+   - Image URLs must be RELATED to the content (e.g., coffee images for coffee shop, tech images for tech page)
+   - Use proper image URLs from these free image sources:
+     * Unsplash: https://images.unsplash.com/photo-... or https://unsplash.com/photos/...
+     * Pexels: https://images.pexels.com/photos/... or https://www.pexels.com/photo/...
+     * Pixabay: https://pixabay.com/photos/... or direct image URLs
+     * LibreShot: https://libreshot.com/... or direct image URLs
+     * Wikimedia Commons: https://commons.wikimedia.org/wiki/File:... or direct image URLs
+     * Flickr Creative Commons: https://live.staticflickr.com/... or https://www.flickr.com/photos/...
+   - CRITICAL - IMAGE SIZING: All images MUST have proper sizing attributes to prevent overflow:
+     * Add style="width: 100%; max-width: 100%; height: auto; object-fit: cover;" to all <img> tags
+     * Or use width="100%" and height="auto" attributes
+     * This prevents images from overflowing the page and causing horizontal/vertical scrolling
+   - NEVER use empty images, broken links, or placeholder.com
+   - Include at least 2-3 images: hero image, feature images, or section images
+   - Example URLs: https://images.unsplash.com/photo-1509042239860-f550ce710b93 (coffee), https://images.pexels.com/photos/2253275/pexels-photo-2253275.jpeg (coffee)
 8. DESIGN MUST BE PREMIUM QUALITY:
    - Include multiple card elements for features, testimonials, products
    - Use Font Awesome icons: <i class="fas fa-..."></i>
@@ -493,22 +625,40 @@ Return ONLY the HTML code as a string. Do not include markdown code blocks, back
 PROJECT TYPE: {project_type}
 THEME: {theme}
 {color_scheme}
+{tailwind_note}
 
 CRITICAL UI REQUIREMENTS (LIKE BOLT.NEW):
+- SPLIT INTO CLEAR SECTIONS:
+  * HEADER/NAVBAR (CRITICAL - MUST BE FULLY FUNCTIONAL):
+    - <header><nav class="navbar"> with logo and navigation links</nav></header>
+    - Navigation MUST work on all devices (desktop, tablet, mobile)
+    - Include hamburger menu button for mobile: <button class="menu-toggle"><i class="fas fa-bars"></i></button>
+    - Navigation structure: <ul class="nav-menu"><li><a href="#home">Home</a></li><li><a href="#about">About</a></li></ul>
+    - All navigation links must be clickable and functional
+    - Mobile menu must toggle open/close with JavaScript
+  * BODY/MAIN: <main> with hero section, features, content sections</main>
+  * FOOTER: <footer> with links, social media, copyright</footer>
 - CARD-BASED LAYOUTS: Create cards for features, testimonials, products (use .card, .feature-card classes)
-- TWO-COLUMN HERO: Left column for text (headline, description, buttons), right column for image/graphic
+- TWO-COLUMN HERO: Left column for text (headline, description, buttons), right column for REAL IMAGE
 - PROPER ALIGNMENT: Use .container class, flexbox, and grid for perfect alignment
-- MODERN STRUCTURE:
-  * Header with logo and navigation
-  * Hero section with compelling headline, description, and CTA buttons (primary and secondary)
-  * Features section with cards in a grid layout
-  * Additional content sections as needed
-  * Footer with links and information
-- Include placeholder images: <img src="https://via.placeholder.com/600x400" alt="Description">
+- ALWAYS INCLUDE REAL IMAGES:
+  * Use public image URLs from free image services (all free for commercial use, no attribution required)
+  * Images must be RELATED to the content (coffee images for coffee shop, tech images for tech page, etc.)
+  * Use URLs from these free image sources:
+    - Unsplash: https://images.unsplash.com/photo-... or https://unsplash.com/photos/...
+    - Pexels: https://images.pexels.com/photos/... or https://www.pexels.com/photo/...
+    - Pixabay: https://pixabay.com/photos/... or direct image URLs
+    - LibreShot: https://libreshot.com/... or direct image URLs
+    - Wikimedia Commons: https://commons.wikimedia.org/wiki/File:... or direct image URLs
+    - Flickr Creative Commons: https://live.staticflickr.com/... or https://www.flickr.com/photos/...
+  * Include at least 2-3 images: hero image, feature images, section images
+  * NEVER use empty images, broken links, or placeholder.com
+  * Example for coffee shop: https://images.unsplash.com/photo-1509042239860-f550ce710b93 or https://images.pexels.com/photos/2253275/pexels-photo-2253275.jpeg
+  * Example for tech: https://images.unsplash.com/photo-1518770660439-4636190af475 or https://images.pexels.com/photos/1181244/pexels-photo-1181244.jpeg
 - Use Font Awesome icons throughout
 - Create multiple CTA buttons with different styles
 - Add badges, stats cards, or testimonials if relevant
-- Use semantic HTML5 with proper class names (hero, card, feature-card, container, section, etc.)
+- Use semantic HTML5 with proper class names (navbar, hero, card, feature-card, container, section, footer, etc.)
 - Make it look like a premium, modern website with professional layout and structure like Bolt.new creates"""
 
     try:
@@ -583,7 +733,16 @@ CRITICAL REQUIREMENTS FOR PREMIUM UI (LIKE BOLT.NEW):
 5. PERFECT ALIGNMENT AND LAYOUT (CRITICAL - MUST IMPLEMENT ALL):
    - .container {{ max-width: 1200px; margin: 0 auto; padding: 0 2rem; }}
    - Two-column hero: display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center;
-   - Navigation: display: flex; justify-content: space-between; align-items: center; width: 100%;
+   - Navigation (CRITICAL - MUST BE RESPONSIVE AND FUNCTIONAL):
+     * .navbar {{ display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 1rem 2rem; position: relative; }}
+     * .nav-menu {{ display: flex; list-style: none; gap: 2rem; margin: 0; padding: 0; }}
+     * Mobile responsive: @media (max-width: 768px) {{
+       .menu-toggle {{ display: block; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: inherit; }}
+       .nav-menu {{ display: none; position: absolute; top: 100%; left: 0; width: 100%; background: white; flex-direction: column; padding: 2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 1000; }}
+       .nav-menu.active {{ display: flex; }}
+     }}
+     * Desktop: @media (min-width: 769px) {{ .menu-toggle {{ display: none; }} .nav-menu {{ display: flex; }} }}
+     * Smooth transitions: .nav-menu {{ transition: all 0.3s ease; }}
    - Center headings: text-align: center; for h1, h2, h3 in hero and sections
    - Left align paragraphs: text-align: left; for body text and descriptions
    - Justify text: text-align: justify; for longer paragraphs if needed
@@ -624,6 +783,15 @@ CRITICAL REQUIREMENTS FOR PREMIUM UI (LIKE BOLT.NEW):
     - Rounded corners: 8px to 16px
     - Gradient backgrounds for hero sections
     - Overlay effects for images
+13. IMAGE SIZING (CRITICAL - PREVENT OVERFLOW):
+    - All images MUST have proper sizing to prevent overflow:
+      * img {{ width: 100%; max-width: 100%; height: auto; object-fit: cover; }}
+      * Or use specific dimensions: width: 600px; max-width: 100%; height: auto;
+      * Prevent horizontal scrolling: body {{ max-width: 100vw; overflow-x: hidden; }}
+      * Prevent vertical overflow: Use proper height constraints
+    - Responsive images: Use max-width: 100%; height: auto; for all images
+    - Hero images: Can use height: 500px; or height: 60vh; with object-fit: cover;
+    - Container images: width: 100%; max-width: 100%; height: auto;
 
 Return ONLY the CSS code as a string. Do not include markdown code blocks, backticks, or explanations."""
 
@@ -653,7 +821,16 @@ CRITICAL UI REQUIREMENTS (LIKE BOLT.NEW):
    - Center headings: text-align: center; for h1, h2, h3 in hero and sections
    - Left align paragraphs: text-align: left; for body text and descriptions
    - Justify text: text-align: justify; for longer paragraphs
-   - Navigation: display: flex; justify-content: space-between; align-items: center; width: 100%;
+   - Navigation (CRITICAL - MUST BE RESPONSIVE AND FUNCTIONAL):
+     * .navbar {{ display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 1rem 2rem; position: relative; }}
+     * .nav-menu {{ display: flex; list-style: none; gap: 2rem; margin: 0; padding: 0; }}
+     * Mobile responsive: @media (max-width: 768px) {{
+       .menu-toggle {{ display: block; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: inherit; }}
+       .nav-menu {{ display: none; position: absolute; top: 100%; left: 0; width: 100%; background: white; flex-direction: column; padding: 2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 1000; }}
+       .nav-menu.active {{ display: flex; }}
+     }}
+     * Desktop: @media (min-width: 769px) {{ .menu-toggle {{ display: none; }} .nav-menu {{ display: flex; }} }}
+     * Smooth transitions: .nav-menu {{ transition: all 0.3s ease; }}
    - Hero alignment: display: flex; or grid with align-items: center; justify-content: space-between; or center;
    - Button alignment: display: flex; gap: 1rem; justify-content: flex-start; or center;
    - Flexbox centering: display: flex; justify-content: center; align-items: center; for perfect centering

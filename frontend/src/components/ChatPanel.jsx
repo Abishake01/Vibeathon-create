@@ -91,7 +91,7 @@ const ChatPanel = ({ onSendMessage, isLoading, todoList = [], description = '', 
             ) : (
               <div className="message-content ai-message">
                 <div className="ai-name">
-                  <strong>bolt</strong>
+                  <strong>Generate</strong>
                   {!msg.content && !msg.todoList && <span className="thinking-dots">...</span>}
                 </div>
                 {msg.content && <div className="ai-text">{msg.content}</div>}
@@ -124,7 +124,7 @@ const ChatPanel = ({ onSendMessage, isLoading, todoList = [], description = '', 
           <div className="message ai">
             <div className="message-content ai-message">
               <div className="ai-name">
-                <strong>bolt</strong>
+                <strong>AIGen</strong>
                 <span className="thinking-dots">...</span>
               </div>
               {currentThinking ? (
@@ -161,9 +161,12 @@ const ChatPanel = ({ onSendMessage, isLoading, todoList = [], description = '', 
                 backgroundColor: '#1f1f1e'
               }}
             >
-              <option value="groq">Groq</option>
-              <option value="openai">OpenAI</option>
-              <option value="ollama">Ollama</option>
+              <option value="langchain">LangChain (Ollama)</option>
+              <option value="langchain-groq">LangChain (Groq)</option>
+              <option value="langchain-openai">LangChain (OpenAI)</option>
+              <option value="groq">Groq (Direct)</option>
+              <option value="openai">OpenAI (Direct)</option>
+              <option value="ollama">Ollama (Direct)</option>
             </select>
           </div>
           {tokenLimit !== null && remainingTokens !== null && (

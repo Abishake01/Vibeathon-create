@@ -27,6 +27,11 @@ from app.ai_service_v2 import (
     generate_code_with_streaming,
     estimate_tokens
 )
+from app.design_references import (
+    get_design_reference,
+    detect_design_type_from_prompt,
+    create_design_context
+)
 from app.ai_providers import get_provider
 from app.file_handler import (
     create_project_directory,
@@ -133,6 +138,15 @@ async def stream_project_creation(prompt: str, project_name: str, provider_name:
         
         project_requirements = extract_project_requirements(prompt, provider)
         total_tokens_used += estimate_tokens(prompt)
+        
+        # Add design reference if detected
+        design_type = detect_design_type_from_prompt(prompt)
+        if design_type:
+            design_ref = get_design_reference(design_type)
+            if design_ref:
+                project_requirements["design_reference"] = design_type
+                project_requirements["design_description"] = design_ref.get("description", "")
+                project_requirements["design_colors"] = design_ref.get("color_scheme", [])
         
         # Step 5: Generate HTML code - separate token call with streaming
         yield f"data: {json.dumps({'type': 'task_start', 'task_id': 2, 'task': 'Creating HTML structure'})}\n\n"
@@ -293,7 +307,7 @@ async def create_project_with_ai_stream(
     Shows todo list generation, task completion, and code generation in real-time.
     """
     project_name = project_data.name or project_data.prompt[:50]
-    provider_name = project_data.provider or "groq"
+    provider_name = project_data.provider or "langchain"
     
     return StreamingResponse(
         stream_project_creation(project_data.prompt, project_name, provider_name, db),

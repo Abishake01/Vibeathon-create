@@ -1,6 +1,6 @@
 from pydantic import BaseModel, EmailStr
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 
 
 class UserRegister(BaseModel):
@@ -74,7 +74,9 @@ class TodoItem(BaseModel):
 class AIProjectCreate(BaseModel):
     prompt: str
     name: Optional[str] = None
-    provider: Optional[str] = "groq"  # groq, openai, ollama
+    provider: Optional[str] = "langchain"  # langchain (default, uses Ollama), langchain-groq, langchain-openai, groq, openai, ollama
+    design_reference: Optional[str] = None  # design type: "coffee_shop", "tech_startup", "portfolio", etc.
+    design_examples: Optional[List[str]] = None  # URLs or descriptions of design examples
 
 
 class AIProjectResponse(BaseModel):

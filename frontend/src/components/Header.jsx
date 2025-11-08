@@ -4,12 +4,8 @@ import './Header.css';
 const Header = ({ projectName = 'New Project', isLocked = false, onRefresh, currentView = 'preview', onViewChange }) => {
   return (
     <header className="app-header">
-      <div className="header-left">
-        <div className="logo">b</div>
-        <div className="separator"></div>
-        <div className="avatar-icon">A</div>
-        <div className="separator"></div>
-        <div className="diamond-icon">◆</div>
+      <div className="header-left"> 
+       
         <span className="project-name">{projectName}</span>
         {isLocked && <span className="lock-icon">🔒</span>}
       </div>
