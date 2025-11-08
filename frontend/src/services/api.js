@@ -9,14 +9,7 @@ const api = axios.create({
   },
 });
 
-// Add token to requests if available
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('access_token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
+// No authentication required - removed interceptor
 
 export const authAPI = {
   register: async (email, username, password) => {
@@ -98,6 +91,21 @@ export const projectsAPI = {
 
   getPreviewUrl: (projectId) => {
     return `${API_BASE_URL}/projects/${projectId}/preview`;
+  },
+};
+
+export const aiAPI = {
+  createProject: async (prompt, name = null) => {
+    const response = await api.post('/ai/create-project', {
+      prompt,
+      name,
+    });
+    return response.data;
+  },
+
+  getTokens: async () => {
+    const response = await api.get('/ai/tokens');
+    return response.data;
   },
 };
 

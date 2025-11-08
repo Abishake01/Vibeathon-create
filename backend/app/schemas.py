@@ -60,3 +60,31 @@ class FileResponse(BaseModel):
     content: str
     project_id: str
 
+
+class ChatMessage(BaseModel):
+    message: str
+
+
+class TodoItem(BaseModel):
+    id: int
+    task: str
+    completed: bool
+
+
+class AIProjectCreate(BaseModel):
+    prompt: str
+    name: Optional[str] = None
+
+
+class AIProjectResponse(BaseModel):
+    project_id: str
+    todo_list: list[TodoItem]
+    description: str
+    remaining_tokens: Optional[int] = None
+
+
+class TokenInfo(BaseModel):
+    remaining: Optional[int]
+    limit: int
+    used: int
+

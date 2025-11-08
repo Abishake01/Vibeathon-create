@@ -1,7 +1,7 @@
 import React from 'react';
 import './Header.css';
 
-const Header = ({ projectName = 'New Project', isLocked = false, onRefresh }) => {
+const Header = ({ projectName = 'New Project', isLocked = false, onRefresh, currentView = 'preview', onViewChange }) => {
   return (
     <header className="app-header">
       <div className="header-left">
@@ -16,13 +16,21 @@ const Header = ({ projectName = 'New Project', isLocked = false, onRefresh }) =>
 
       <div className="header-center">
         <div className="icon-group">
-          <button className="icon-btn active" title="Preview">
+          <button 
+            className={`icon-btn ${currentView === 'preview' ? 'active' : ''}`} 
+            title="Preview"
+            onClick={() => onViewChange && onViewChange('preview')}
+          >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
               <circle cx="12" cy="12" r="3"></circle>
             </svg>
           </button>
-          <button className="icon-btn" title="Code">
+          <button 
+            className={`icon-btn ${currentView === 'code' ? 'active' : ''}`} 
+            title="Code"
+            onClick={() => onViewChange && onViewChange('code')}
+          >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <polyline points="16 18 22 12 16 6"></polyline>
               <polyline points="8 6 2 12 8 18"></polyline>

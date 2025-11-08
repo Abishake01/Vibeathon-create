@@ -2,9 +2,14 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import engine, Base
-from app.routers import auth, projects
+from app.routers import auth, projects, ai
 
 # Create database tables
+# Drop and recreate to handle schema changes
+try:
+    Base.metadata.drop_all(bind=engine)
+except:
+    pass
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
@@ -25,6 +30,7 @@ app.add_middleware(
 # Include routers
 app.include_router(auth.router)
 app.include_router(projects.router)
+app.include_router(ai.router)
 
 
 @app.get("/")

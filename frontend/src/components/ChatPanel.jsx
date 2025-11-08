@@ -1,14 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './ChatPanel.css';
 
-const ChatPanel = ({ onSendMessage, isLoading }) => {
+const ChatPanel = ({ onSendMessage, isLoading, todoList = [], description = '', remainingTokens = null }) => {
   const [input, setInput] = useState('');
-  const [messages, setMessages] = useState([
-    {
-      type: 'suggestion',
-      content: 'create a coffee shop page',
-    },
-  ]);
+  const [messages, setMessages] = useState([]);
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -17,7 +12,20 @@ const ChatPanel = ({ onSendMessage, isLoading }) => {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, isLoading]);
+  }, [messages, isLoading, todoList]);
+
+  useEffect(() => {
+    if (description) {
+      setMessages(prev => [
+        ...prev,
+        {
+          type: 'ai',
+          content: description,
+          todoList: todoList
+        }
+      ]);
+    }
+  }, [description, todoList]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -28,52 +36,86 @@ const ChatPanel = ({ onSendMessage, isLoading }) => {
       content: input.trim(),
     };
 
-    setMessages((prev) => [...prev, userMessage]);
+    setMessages(prev => [...prev, userMessage]);
     onSendMessage(input.trim());
     setInput('');
   };
 
-  const handleSuggestionClick = (suggestion) => {
-    if (isLoading) return;
-    setMessages((prev) => [
-      ...prev,
-      { type: 'user', content: suggestion },
-    ]);
-    onSendMessage(suggestion);
-  };
-
-
   return (
     <div className="chat-panel">
+      <div className="chat-header">
+        <div className="chat-header-left">
+          <span className="logo-small">b</span>
+          <span className="separator">/</span>
+          <span className="avatar-small">A</span>
+          <span className="separator">/</span>
+          <span className="project-title">Coffee Shop Page</span>
+        </div>
+        <button className="eye-icon-btn" title="Preview">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
+        </button>
+      </div>
+
       <div className="chat-messages">
+        {messages.length === 0 && (
+          <div className="suggestion-chip-container">
+            <button
+              className="suggestion-chip"
+              onClick={() => {
+                setMessages([{ type: 'user', content: 'create a coffee shop page' }]);
+                onSendMessage('create a coffee shop page');
+              }}
+              disabled={isLoading}
+            >
+              create a coffee shop page
+            </button>
+          </div>
+        )}
+
         {messages.map((msg, idx) => (
           <div key={idx} className={`message ${msg.type}`}>
-            {msg.type === 'suggestion' ? (
-              <button
-                className="suggestion-chip"
-                onClick={() => handleSuggestionClick(msg.content)}
-                disabled={isLoading}
-              >
-                {msg.content}
-              </button>
-            ) : msg.type === 'user' ? (
-              <div className="message-content">{msg.content}</div>
+            {msg.type === 'user' ? (
+              <div className="message-content user-message">{msg.content}</div>
             ) : (
-              <div className="message-content">
-                <strong>bolt</strong>
-                <span className="thinking-dots">...</span>
-                <br />
-                {msg.content}
+              <div className="message-content ai-message">
+                <div className="ai-name">
+                  <strong>bolt</strong>
+                  <span className="thinking-dots">...</span>
+                </div>
+                <div className="ai-text">{msg.content}</div>
+                {msg.todoList && msg.todoList.length > 0 && (
+                  <div className="todo-list">
+                    <div className="todo-header">
+                      <span>{msg.todoList.length} actions taken</span>
+                      <span className="todo-toggle">▼</span>
+                    </div>
+                    <ul className="todo-items">
+                      {msg.todoList.map((todo) => (
+                        <li key={todo.id} className={`todo-item ${todo.completed ? 'completed' : ''}`}>
+                          <span className="todo-checkbox">
+                            {todo.completed ? '✓' : '○'}
+                          </span>
+                          <span className="todo-text">{todo.task}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
             )}
           </div>
         ))}
+
         {isLoading && (
           <div className="message ai">
-            <div className="message-content">
-              <strong>bolt</strong>
-              <span className="thinking-dots">...</span>
-              <br />
+            <div className="message-content ai-message">
+              <div className="ai-name">
+                <strong>bolt</strong>
+                <span className="thinking-dots">...</span>
+              </div>
               <div className="thinking-indicator">
                 <span className="brain-icon">🧠</span>
                 Thinking...
@@ -85,26 +127,30 @@ const ChatPanel = ({ onSendMessage, isLoading }) => {
       </div>
 
       <div className="chat-input-container">
+        {remainingTokens !== null && (
+          <div className="token-info">
+            Remaining tokens: {remainingTokens.toLocaleString()}
+          </div>
+        )}
         <form onSubmit={handleSubmit} className="chat-input-form">
           <div className="input-actions">
-            <button type="button" className="action-btn">
-              Let's build
-            </button>
+            <button type="button" className="action-btn">Let's build</button>
             <button type="button" className="action-btn icon-only">+</button>
             <button type="button" className="action-btn">Select</button>
-            <button type="button" className="action-btn">Plan</button>
+            <button type="button" className="action-btn">
+              <span className="lightbulb-icon">💡</span>
+              Plan
+            </button>
             <button type="button" className="action-btn toggle-btn"></button>
           </div>
-          <div className="input-wrapper">
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Type your message..."
-              className="chat-input"
-              disabled={isLoading}
-            />
-          </div>
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Let's build"
+            className="chat-input"
+            disabled={isLoading}
+          />
         </form>
       </div>
     </div>
@@ -112,4 +158,3 @@ const ChatPanel = ({ onSendMessage, isLoading }) => {
 };
 
 export default ChatPanel;
-

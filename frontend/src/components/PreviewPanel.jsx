@@ -15,7 +15,7 @@ const PreviewPanel = ({ projectId, previewUrl, isLoading }) => {
       {isLoading ? (
         <div className="preview-placeholder">
           <div className="loading-spinner"></div>
-          <p className="placeholder-text">Loading...</p>
+          <p className="placeholder-text">Creating project...</p>
         </div>
       ) : previewUrl ? (
         <iframe

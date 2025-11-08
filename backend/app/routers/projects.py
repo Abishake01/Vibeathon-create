@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from app.database import get_db
-from app.models import User, Project
+from app.models import Project
 from app.schemas import (
     ProjectCreate,
     ProjectUpdate,
@@ -14,7 +14,6 @@ from app.schemas import (
     FileUpdate,
     FileResponse
 )
-from app.auth import get_current_user
 from app.file_handler import (
     create_project_directory,
     save_file,
@@ -30,12 +29,11 @@ router = APIRouter(prefix="/projects", tags=["projects"])
 @router.post("", response_model=ProjectResponse, status_code=status.HTTP_201_CREATED)
 async def create_project(
     project_data: ProjectCreate,
-    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Create a new project."""
+    """Create a new project. No authentication required."""
     project = Project(
-        user_id=current_user.id,
+        user_id=None,
         name=project_data.name,
         description=project_data.description
     )
@@ -53,25 +51,20 @@ async def create_project(
 
 @router.get("", response_model=List[ProjectResponse])
 async def list_projects(
-    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """List all projects for the current user."""
-    projects = db.query(Project).filter(Project.user_id == current_user.id).all()
+    """List all projects. No authentication required."""
+    projects = db.query(Project).all()
     return projects
 
 
 @router.get("/{project_id}", response_model=ProjectResponse)
 async def get_project(
     project_id: str,
-    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Get a specific project by ID."""
-    project = db.query(Project).filter(
-        Project.id == project_id,
-        Project.user_id == current_user.id
-    ).first()
+    """Get a specific project by ID. No authentication required."""
+    project = db.query(Project).filter(Project.id == project_id).first()
     
     if not project:
         raise HTTPException(
@@ -86,14 +79,10 @@ async def get_project(
 async def update_project(
     project_id: str,
     project_data: ProjectUpdate,
-    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Update project metadata."""
-    project = db.query(Project).filter(
-        Project.id == project_id,
-        Project.user_id == current_user.id
-    ).first()
+    """Update project metadata. No authentication required."""
+    project = db.query(Project).filter(Project.id == project_id).first()
     
     if not project:
         raise HTTPException(
@@ -115,14 +104,10 @@ async def update_project(
 @router.delete("/{project_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_project(
     project_id: str,
-    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Delete a project and all its files."""
-    project = db.query(Project).filter(
-        Project.id == project_id,
-        Project.user_id == current_user.id
-    ).first()
+    """Delete a project and all its files. No authentication required."""
+    project = db.query(Project).filter(Project.id == project_id).first()
     
     if not project:
         raise HTTPException(
@@ -143,15 +128,11 @@ async def delete_project(
 @router.get("/{project_id}/files", response_model=ProjectFilesResponse)
 async def get_project_files(
     project_id: str,
-    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Get all files (HTML, CSS, JS) for a project."""
-    # Verify project exists and belongs to user
-    project = db.query(Project).filter(
-        Project.id == project_id,
-        Project.user_id == current_user.id
-    ).first()
+    """Get all files (HTML, CSS, JS) for a project. No authentication required."""
+    # Verify project exists
+    project = db.query(Project).filter(Project.id == project_id).first()
     
     if not project:
         raise HTTPException(
@@ -176,15 +157,11 @@ async def get_project_files(
 async def get_file_content(
     project_id: str,
     filename: str,
-    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Get a specific file content."""
-    # Verify project exists and belongs to user
-    project = db.query(Project).filter(
-        Project.id == project_id,
-        Project.user_id == current_user.id
-    ).first()
+    """Get a specific file content. No authentication required."""
+    # Verify project exists
+    project = db.query(Project).filter(Project.id == project_id).first()
     
     if not project:
         raise HTTPException(
@@ -214,15 +191,11 @@ async def update_file(
     project_id: str,
     filename: str,
     file_data: FileUpdate,
-    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Update a project file (HTML, CSS, or JS)."""
-    # Verify project exists and belongs to user
-    project = db.query(Project).filter(
-        Project.id == project_id,
-        Project.user_id == current_user.id
-    ).first()
+    """Update a project file (HTML, CSS, or JS). No authentication required."""
+    # Verify project exists
+    project = db.query(Project).filter(Project.id == project_id).first()
     
     if not project:
         raise HTTPException(
@@ -249,15 +222,11 @@ async def update_file(
 @router.get("/{project_id}/preview", response_class=HTMLResponse)
 async def preview_project(
     project_id: str,
-    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Render the project as a live preview (combine HTML, CSS, JS)."""
-    # Verify project exists and belongs to user
-    project = db.query(Project).filter(
-        Project.id == project_id,
-        Project.user_id == current_user.id
-    ).first()
+    """Render the project as a live preview (combine HTML, CSS, JS). No authentication required."""
+    # Verify project exists
+    project = db.query(Project).filter(Project.id == project_id).first()
     
     if not project:
         raise HTTPException(
@@ -312,4 +281,3 @@ async def preview_project(
         preview_html = html_content
     
     return HTMLResponse(content=preview_html)
-
