@@ -383,4 +383,5 @@ async def create_project_with_ai(
 @router.get("/tokens", response_model=TokenInfo)
 async def get_token_info():
     """Get remaining token information. No authentication required."""
+    from app.ai_service import get_remaining_tokens
     return get_remaining_tokens()

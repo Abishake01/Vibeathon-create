@@ -155,27 +155,35 @@ async def generate_code_with_streaming(prompt: str, project_requirements: Dict, 
     import asyncio
     
     if code_type == "html":
-        system_prompt = """You are an expert web developer. Generate clean, modern, production-ready HTML code with HIGHLY ATTRACTIVE, ORIGINAL DESIGN.
+        system_prompt = """You are an expert web developer. Generate PREMIUM, PROFESSIONAL HTML code like Bolt.new with CARD-BASED LAYOUTS and MODERN STRUCTURE.
 
-CRITICAL REQUIREMENTS FOR BEAUTIFUL UI:
+CRITICAL REQUIREMENTS FOR PREMIUM UI (LIKE BOLT.NEW):
 1. HTML must be properly formatted with correct indentation (2 spaces per level)
 2. Use semantic HTML5 elements (header, nav, main, section, footer, article, aside)
 3. Include proper viewport meta tag: <meta name="viewport" content="width=device-width, initial-scale=1.0">
-4. Include Google Fonts or other attractive fonts in <head>: <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-5. Include Font Awesome or similar icon library: <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-6. Add meaningful class names for styling (use BEM methodology or similar)
-7. Include proper accessibility attributes (alt, aria-labels where needed)
-8. Use proper heading hierarchy (h1, h2, h3)
-9. DESIGN MUST BE HIGHLY ATTRACTIVE:
-   - Use modern, eye-catching layouts
-   - Include icons from Font Awesome (use <i class="fas fa-..."></i>)
-   - Use attractive typography with Google Fonts
-   - Add data attributes for animations
-   - Include proper structure for animations and interactions
-10. Make it look professional and polished like a real modern website
-11. CRITICAL: Do NOT include <link> tags for external CSS files (style.css, styles.css, etc.)
-12. CRITICAL: Do NOT include <script src=""> tags for external JS files (script.js, main.js, etc.)
-13. All CSS and JS will be injected automatically - just provide the HTML structure
+4. Include Google Fonts: <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+5. Include Font Awesome: <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+6. STRUCTURE MUST INCLUDE:
+   - Card-based layouts: <div class="card">, <div class="feature-card">, <div class="testimonial-card">
+   - Containers: <div class="container"> for proper alignment
+   - Two-column hero section: Left for text, right for image/graphic
+   - Grid layouts for features/cards
+   - Proper sections with semantic HTML
+7. MODERN LAYOUT PATTERNS:
+   - Hero section with headline, description, and CTA buttons
+   - Features section with cards in grid
+   - Navigation bar with logo and links
+   - Footer with links and information
+   - Use placeholder images: <img src="https://via.placeholder.com/600x400" alt="Description">
+8. DESIGN MUST BE PREMIUM QUALITY:
+   - Include multiple card elements for features, testimonials, products
+   - Use Font Awesome icons: <i class="fas fa-..."></i>
+   - Proper heading hierarchy (h1 for hero, h2 for sections, h3 for cards)
+   - Add badges, buttons with proper classes
+   - Include stats cards or testimonials if relevant
+9. CRITICAL: Do NOT include <link> tags for external CSS files
+10. CRITICAL: Do NOT include <script src=""> tags for external JS files
+11. All CSS and JS will be injected automatically - just provide the HTML structure
 
 Return ONLY the HTML code as a string. Do not include markdown code blocks, backticks, or explanations."""
         
@@ -194,50 +202,91 @@ Return ONLY the HTML code as a string. Do not include markdown code blocks, back
             elif "coffee" in prompt.lower():
                 color_scheme = "\nUse warm coffee shop colors: #8B4513, #D2691E, #F5F5DC, #FFFFFF, #CD853F"
         
-        context = f"""Create beautiful, modern HTML structure for: {prompt}
+        context = f"""Create a PREMIUM, PROFESSIONAL HTML structure for: {prompt} - Design it like Bolt.new.
 
 PROJECT TYPE: {project_type}
 THEME: {theme}
 {color_scheme}
 
-CRITICAL UI REQUIREMENTS:
-- Semantic HTML5 structure
-- Responsive and accessible
-- HIGHLY ATTRACTIVE design with icons, modern fonts, animations
-- Professional, polished appearance like premium websites
-- Include Google Fonts (Poppins, Inter, Playfair Display) in <head>
-- Include Font Awesome icons library in <head>
-- Add proper structure for animations and interactions
-- Use meaningful class names for styling
-- Make it visually stunning and modern"""
+CRITICAL UI REQUIREMENTS (LIKE BOLT.NEW):
+- CARD-BASED LAYOUTS: Create cards for features, testimonials, products (use .card, .feature-card classes)
+- TWO-COLUMN HERO: Left column for text (headline, description, buttons), right column for image/graphic
+- PROPER ALIGNMENT: Use .container class, flexbox, and grid for perfect alignment
+- MODERN STRUCTURE:
+  * Header with logo and navigation
+  * Hero section with compelling headline, description, and CTA buttons (primary and secondary)
+  * Features section with cards in a grid layout
+  * Additional content sections as needed
+  * Footer with links and information
+- Include placeholder images: <img src="https://via.placeholder.com/600x400" alt="Description">
+- Use Font Awesome icons throughout
+- Create multiple CTA buttons with different styles
+- Add badges, stats cards, or testimonials if relevant
+- Use semantic HTML5 with proper class names (hero, card, feature-card, container, section, etc.)
+- Make it look like a premium, modern website with professional layout and structure like Bolt.new creates"""
         
     elif code_type == "css":
-        system_prompt = """You are an expert web developer. Generate clean, modern, production-ready, FULLY RESPONSIVE CSS code with HIGHLY ATTRACTIVE, ORIGINAL DESIGN.
+        system_prompt = """You are an expert web developer. Generate PREMIUM, PROFESSIONAL CSS code like Bolt.new with CARD-BASED LAYOUTS, PERFECT ALIGNMENT, and MODERN DESIGN.
 
-CRITICAL REQUIREMENTS FOR BEAUTIFUL UI:
+CRITICAL REQUIREMENTS FOR PREMIUM UI (LIKE BOLT.NEW):
 1. CSS must be properly formatted with correct indentation
-2. MUST BE FULLY RESPONSIVE - Use media queries: @media (max-width: 768px) for mobile, @media (max-width: 1024px) for tablet
-3. Use CSS Grid or Flexbox for PERFECT alignment and layout
-4. Use relative units (rem, em, %, vw, vh) for responsive sizing
-5. DESIGN MUST BE HIGHLY ATTRACTIVE AND ORIGINAL:
-   - Use creative, modern layouts that stand out
-   - Implement unique visual elements (gradients, shadows, animations, glassmorphism effects)
-   - Create professional, polished appearance like premium websites
-   - Use original color schemes with proper contrast
-   - Add micro-interactions and smooth animations (fade-in, slide-in, scale effects)
-   - Use attractive typography with Google Fonts (Poppins, Inter, Playfair Display, etc.)
-   - Add hover effects, transitions, and interactive elements
-   - Use CSS variables for colors and spacing for consistency
-   - Add box-shadows, border-radius, and modern styling
-   - Include keyframe animations for engaging effects
-6. Perfect alignment - center content properly, use consistent spacing
-7. Use modern typography with proper font weights and sizes
-8. Add smooth transitions (0.3s ease) and hover effects on all interactive elements
-9. Use CSS variables for colors and spacing
-10. Mobile-first responsive design
-11. Include animations: @keyframes for fade-in, slide-in, pulse effects
-12. Make buttons and interactive elements attractive with gradients, shadows, and hover states
-13. Use modern color palettes and ensure proper contrast
+2. MUST BE FULLY RESPONSIVE - Mobile-first with media queries:
+   - @media (max-width: 768px) for mobile
+   - @media (max-width: 1024px) for tablet
+   - @media (min-width: 1025px) for desktop
+3. USE CSS VARIABLES: :root {{ --primary-color: #...; --secondary-color: #...; --spacing: 1rem; }}
+4. CARD-BASED DESIGN (CRITICAL):
+   - Style .card, .feature-card, .testimonial-card with:
+     * box-shadow: 0 4px 6px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.06);
+     * border-radius: 12px to 16px;
+     * padding: 1.5rem to 2rem;
+     * background: white or subtle gradient;
+     * hover: transform: translateY(-4px); box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+   - Card grids: display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem;
+5. PERFECT ALIGNMENT AND LAYOUT (CRITICAL - MUST IMPLEMENT ALL):
+   - .container {{ max-width: 1200px; margin: 0 auto; padding: 0 2rem; }}
+   - Two-column hero: display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center;
+   - Navigation: display: flex; justify-content: space-between; align-items: center; width: 100%;
+   - Center headings: text-align: center; for h1, h2, h3 in hero and sections
+   - Left align paragraphs: text-align: left; for body text and descriptions
+   - Justify text: text-align: justify; for longer paragraphs if needed
+   - Button groups: display: flex; gap: 1rem; justify-content: flex-start; or center;
+   - Vertical centering: display: flex; align-items: center; for vertical alignment
+   - Horizontal centering: justify-content: center; for horizontal alignment
+   - Center containers: margin: 0 auto; width: 100%; max-width: 1200px;
+   - Consistent spacing: 1rem, 1.5rem, 2rem, 3rem, 4rem, 6rem
+   - ALWAYS use alignment: justify-content, align-items, text-align, margin: 0 auto;
+6. MODERN COLOR SCHEMES:
+   - Gradients: linear-gradient(135deg, #color1, #color2)
+   - Mixed warm and cool colors
+   - Proper contrast ratios
+   - CSS variables for theming
+7. TYPOGRAPHY:
+   - Fonts: 'Poppins' for body, 'Playfair Display' for headings (if appropriate)
+   - Hero headline: 3.5rem, font-weight: 700-800, line-height: 1.2
+   - Section headings: 2.5rem, font-weight: 600-700
+   - Body: 1.125rem, font-weight: 400, line-height: 1.7
+8. BUTTONS:
+   - Primary: gradient background, border-radius: 10px, padding: 1rem 2rem, hover: scale(1.05)
+   - Secondary: border style, transparent background
+   - Add icons with proper spacing
+9. ANIMATIONS:
+   - @keyframes fadeIn, slideInUp, pulse
+   - Smooth transitions: transition: all 0.3s ease
+   - Hover effects on cards, buttons, links
+10. SPACING:
+    - Section padding: 4rem to 6rem
+    - Card gaps: 2rem in grids
+    - Consistent margins between sections
+11. RESPONSIVE:
+    - Mobile: stack columns, reduce font sizes, adjust padding
+    - Tablet: adjust grid columns, moderate spacing
+    - Desktop: full layout with optimal spacing
+12. MODERN EFFECTS:
+    - Multiple shadow layers: box-shadow with rgba values
+    - Rounded corners: 8px to 16px
+    - Gradient backgrounds for hero sections
+    - Overlay effects for images
 
 Return ONLY the CSS code as a string. Do not include markdown code blocks, backticks, or explanations."""
         
@@ -256,29 +305,68 @@ Return ONLY the CSS code as a string. Do not include markdown code blocks, backt
             elif "coffee" in prompt.lower():
                 color_scheme = "\nUse warm coffee shop colors: #8B4513, #D2691E, #F5F5DC, #FFFFFF, #CD853F"
         
-        context = f"""Create beautiful, modern, responsive CSS for: {prompt}
+        context = f"""Create PREMIUM, PROFESSIONAL CSS for: {prompt} - Design it like Bolt.new with cards, perfect alignment, and modern UI.
 
 PROJECT TYPE: {project_type}
 THEME: {theme}
 {color_scheme}
 
 HTML Structure (for reference):
-{html_code[:500]}
+{html_code[:800]}
 
-CRITICAL UI REQUIREMENTS:
-- Fully responsive (mobile, tablet, desktop)
-- HIGHLY ATTRACTIVE design with icons, animations, modern fonts
-- Smooth animations and transitions (fade-in, slide-in, hover effects)
-- Professional, polished appearance like premium websites
-- Perfect alignment and spacing
-- Use Google Fonts (Poppins, Inter, Playfair Display) - apply to body and headings
-- Style Font Awesome icons properly
-- Add keyframe animations for engaging effects (@keyframes fadeIn, slideIn, pulse)
-- Modern color schemes with gradients and shadows
-- Make buttons and interactive elements attractive with gradients, shadows, hover states
-- Use CSS variables for colors and spacing
-- Add box-shadows, border-radius, and modern styling throughout
-- Ensure perfect alignment - center content properly"""
+CRITICAL UI REQUIREMENTS (LIKE BOLT.NEW):
+1. CARD-BASED LAYOUTS:
+   - Style all .card, .feature-card elements with shadows, rounded corners (12px-16px), padding (1.5rem-2rem)
+   - Create card grids: display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem;
+   - Add hover effects: transform: translateY(-4px); box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+   - Card backgrounds: white or subtle gradients
+2. TWO-COLUMN HERO SECTION:
+   - Left column: text content with proper typography (headline 3.5rem, description, buttons)
+   - Right column: image/graphic with proper sizing
+   - Use grid: display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center;
+   - Responsive: stack on mobile with @media query
+3. PERFECT ALIGNMENT (CRITICAL - MUST IMPLEMENT ALL):
+   - .container {{ max-width: 1200px; margin: 0 auto; padding: 0 2rem; }}
+   - Center containers: margin: 0 auto; width: 100%; max-width: 1200px;
+   - Center headings: text-align: center; for h1, h2, h3 in hero and sections
+   - Left align paragraphs: text-align: left; for body text and descriptions
+   - Justify text: text-align: justify; for longer paragraphs
+   - Navigation: display: flex; justify-content: space-between; align-items: center; width: 100%;
+   - Hero alignment: display: flex; or grid with align-items: center; justify-content: space-between; or center;
+   - Button alignment: display: flex; gap: 1rem; justify-content: flex-start; or center;
+   - Flexbox centering: display: flex; justify-content: center; align-items: center; for perfect centering
+   - Grid alignment: Use place-items: center; or align-items: center; justify-items: center;
+   - Consistent spacing: Use rem units (1rem, 1.5rem, 2rem, 3rem, 4rem, 6rem) for all margins and padding
+   - ALWAYS use alignment properties: justify-content, align-items, text-align, margin: 0 auto;
+4. MODERN COLOR THEMES:
+   - Use gradients: linear-gradient(135deg, #color1, #color2)
+   - Mixed warm and cool colors
+   - CSS variables: :root {{ --primary: #...; --secondary: #...; }}
+   - Proper contrast for readability
+5. TYPOGRAPHY:
+   - Apply fonts: 'Poppins' for body, 'Playfair Display' for headings (if appropriate)
+   - Hero headline: 3.5rem, font-weight: 700-800, line-height: 1.2
+   - Section headings: 2.5rem, font-weight: 600-700
+   - Body: 1.125rem, font-weight: 400, line-height: 1.7
+6. BUTTONS:
+   - Primary: gradient background, border-radius: 10px, padding: 1rem 2rem, hover: transform: scale(1.05)
+   - Secondary: border style, transparent background
+   - Add icons with proper spacing
+7. RESPONSIVE:
+   - Mobile-first approach
+   - Breakpoints: 768px (mobile), 1024px (tablet)
+   - Adjust font sizes, spacing, and layouts for each breakpoint
+8. ANIMATIONS:
+   - @keyframes fadeIn, slideInUp, pulse
+   - Smooth transitions: transition: all 0.3s ease
+   - Hover effects on all interactive elements
+9. MODERN EFFECTS:
+   - Multiple shadow layers for depth: box-shadow with rgba values
+   - Rounded corners: 8px to 16px
+   - Gradient backgrounds
+   - Overlay effects
+
+Make it look like a premium, professional website with card-based layouts, perfect alignment, and modern design like Bolt.new creates."""
         
     else:  # js
         system_prompt = """You are an expert JavaScript developer. Generate clean, modern, production-ready JavaScript code.
@@ -368,46 +456,60 @@ def generate_html_code(prompt: str, project_requirements: Dict, provider: AIProv
         elif "coffee" in prompt.lower():
             color_scheme = "\nUse warm coffee shop colors: #8B4513, #D2691E, #F5F5DC, #FFFFFF, #CD853F"
     
-    system_prompt = """You are an expert web developer. Generate clean, modern, production-ready HTML code with HIGHLY ATTRACTIVE, ORIGINAL DESIGN.
+    system_prompt = """You are an expert web developer. Generate PREMIUM, PROFESSIONAL HTML code like Bolt.new with CARD-BASED LAYOUTS and MODERN STRUCTURE.
 
-CRITICAL REQUIREMENTS FOR BEAUTIFUL UI:
+CRITICAL REQUIREMENTS FOR PREMIUM UI (LIKE BOLT.NEW):
 1. HTML must be properly formatted with correct indentation (2 spaces per level)
 2. Use semantic HTML5 elements (header, nav, main, section, footer, article, aside)
 3. Include proper viewport meta tag: <meta name="viewport" content="width=device-width, initial-scale=1.0">
-4. Include Google Fonts or other attractive fonts in <head>: <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-5. Include Font Awesome or similar icon library: <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-6. Add meaningful class names for styling (use BEM methodology or similar)
-7. Include proper accessibility attributes (alt, aria-labels where needed)
-8. Use proper heading hierarchy (h1, h2, h3)
-9. DESIGN MUST BE HIGHLY ATTRACTIVE:
-   - Use modern, eye-catching layouts
-   - Include icons from Font Awesome (use <i class="fas fa-..."></i>)
-   - Use attractive typography with Google Fonts
-   - Add data attributes for animations
-   - Include proper structure for animations and interactions
-10. Make it look professional and polished like a real modern website
-11. CRITICAL: Do NOT include <link> tags for external CSS files (style.css, styles.css, etc.)
-12. CRITICAL: Do NOT include <script src=""> tags for external JS files (script.js, main.js, etc.)
-13. All CSS and JS will be injected automatically - just provide the HTML structure
+4. Include Google Fonts: <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+5. Include Font Awesome: <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+6. STRUCTURE MUST INCLUDE:
+   - Card-based layouts: <div class="card">, <div class="feature-card">, <div class="testimonial-card">
+   - Containers: <div class="container"> for proper alignment
+   - Two-column hero section: Left for text, right for image/graphic
+   - Grid layouts for features/cards
+   - Proper sections with semantic HTML
+7. MODERN LAYOUT PATTERNS:
+   - Hero section with headline, description, and CTA buttons
+   - Features section with cards in grid
+   - Navigation bar with logo and links
+   - Footer with links and information
+   - Use placeholder images: <img src="https://via.placeholder.com/600x400" alt="Description">
+8. DESIGN MUST BE PREMIUM QUALITY:
+   - Include multiple card elements for features, testimonials, products
+   - Use Font Awesome icons: <i class="fas fa-..."></i>
+   - Proper heading hierarchy (h1 for hero, h2 for sections, h3 for cards)
+   - Add badges, buttons with proper classes
+   - Include stats cards or testimonials if relevant
+9. CRITICAL: Do NOT include <link> tags for external CSS files
+10. CRITICAL: Do NOT include <script src=""> tags for external JS files
+11. All CSS and JS will be injected automatically - just provide the HTML structure
 
 Return ONLY the HTML code as a string. Do not include markdown code blocks, backticks, or explanations."""
 
-    context = f"""Create beautiful, modern HTML structure for: {prompt}
+    context = f"""Create a PREMIUM, PROFESSIONAL HTML structure for: {prompt} - Design it like Bolt.new.
 
 PROJECT TYPE: {project_type}
 THEME: {theme}
 {color_scheme}
 
-CRITICAL UI REQUIREMENTS:
-- Semantic HTML5 structure
-- Responsive and accessible
-- HIGHLY ATTRACTIVE design with icons, modern fonts, animations
-- Professional, polished appearance like premium websites
-- Include Google Fonts (Poppins, Inter, Playfair Display) in <head>
-- Include Font Awesome icons library in <head>
-- Add proper structure for animations and interactions
-- Use meaningful class names for styling
-- Make it visually stunning and modern"""
+CRITICAL UI REQUIREMENTS (LIKE BOLT.NEW):
+- CARD-BASED LAYOUTS: Create cards for features, testimonials, products (use .card, .feature-card classes)
+- TWO-COLUMN HERO: Left column for text (headline, description, buttons), right column for image/graphic
+- PROPER ALIGNMENT: Use .container class, flexbox, and grid for perfect alignment
+- MODERN STRUCTURE:
+  * Header with logo and navigation
+  * Hero section with compelling headline, description, and CTA buttons (primary and secondary)
+  * Features section with cards in a grid layout
+  * Additional content sections as needed
+  * Footer with links and information
+- Include placeholder images: <img src="https://via.placeholder.com/600x400" alt="Description">
+- Use Font Awesome icons throughout
+- Create multiple CTA buttons with different styles
+- Add badges, stats cards, or testimonials if relevant
+- Use semantic HTML5 with proper class names (hero, card, feature-card, container, section, etc.)
+- Make it look like a premium, modern website with professional layout and structure like Bolt.new creates"""
 
     try:
         response = provider.chat_completion(
@@ -461,58 +563,132 @@ def generate_css_code(prompt: str, project_requirements: Dict, html_code: str, p
         elif "coffee" in prompt.lower():
             color_scheme = "\nUse warm coffee shop colors: #8B4513, #D2691E, #F5F5DC, #FFFFFF, #CD853F"
     
-    system_prompt = """You are an expert web developer. Generate clean, modern, production-ready, FULLY RESPONSIVE CSS code with HIGHLY ATTRACTIVE, ORIGINAL DESIGN.
+    system_prompt = """You are an expert web developer. Generate PREMIUM, PROFESSIONAL CSS code like Bolt.new with CARD-BASED LAYOUTS, PERFECT ALIGNMENT, and MODERN DESIGN.
 
-CRITICAL REQUIREMENTS FOR BEAUTIFUL UI:
+CRITICAL REQUIREMENTS FOR PREMIUM UI (LIKE BOLT.NEW):
 1. CSS must be properly formatted with correct indentation
-2. MUST BE FULLY RESPONSIVE - Use media queries: @media (max-width: 768px) for mobile, @media (max-width: 1024px) for tablet
-3. Use CSS Grid or Flexbox for PERFECT alignment and layout
-4. Use relative units (rem, em, %, vw, vh) for responsive sizing
-5. DESIGN MUST BE HIGHLY ATTRACTIVE AND ORIGINAL:
-   - Use creative, modern layouts that stand out
-   - Implement unique visual elements (gradients, shadows, animations, glassmorphism effects)
-   - Create professional, polished appearance like premium websites
-   - Use original color schemes with proper contrast
-   - Add micro-interactions and smooth animations (fade-in, slide-in, scale effects)
-   - Use attractive typography with Google Fonts (Poppins, Inter, Playfair Display, etc.)
-   - Add hover effects, transitions, and interactive elements
-   - Use CSS variables for colors and spacing for consistency
-   - Add box-shadows, border-radius, and modern styling
-   - Include keyframe animations for engaging effects
-6. Perfect alignment - center content properly, use consistent spacing
-7. Use modern typography with proper font weights and sizes
-8. Add smooth transitions (0.3s ease) and hover effects on all interactive elements
-9. Use CSS variables for colors and spacing
-10. Mobile-first responsive design
-11. Include animations: @keyframes for fade-in, slide-in, pulse effects
-12. Make buttons and interactive elements attractive with gradients, shadows, and hover states
-13. Use modern color palettes and ensure proper contrast
+2. MUST BE FULLY RESPONSIVE - Mobile-first with media queries:
+   - @media (max-width: 768px) for mobile
+   - @media (max-width: 1024px) for tablet
+   - @media (min-width: 1025px) for desktop
+3. USE CSS VARIABLES: :root {{ --primary-color: #...; --secondary-color: #...; --spacing: 1rem; }}
+4. CARD-BASED DESIGN (CRITICAL):
+   - Style .card, .feature-card, .testimonial-card with:
+     * box-shadow: 0 4px 6px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.06);
+     * border-radius: 12px to 16px;
+     * padding: 1.5rem to 2rem;
+     * background: white or subtle gradient;
+     * hover: transform: translateY(-4px); box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+   - Card grids: display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem;
+5. PERFECT ALIGNMENT AND LAYOUT (CRITICAL - MUST IMPLEMENT ALL):
+   - .container {{ max-width: 1200px; margin: 0 auto; padding: 0 2rem; }}
+   - Two-column hero: display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center;
+   - Navigation: display: flex; justify-content: space-between; align-items: center; width: 100%;
+   - Center headings: text-align: center; for h1, h2, h3 in hero and sections
+   - Left align paragraphs: text-align: left; for body text and descriptions
+   - Justify text: text-align: justify; for longer paragraphs if needed
+   - Button groups: display: flex; gap: 1rem; justify-content: flex-start; or center;
+   - Vertical centering: display: flex; align-items: center; for vertical alignment
+   - Horizontal centering: justify-content: center; for horizontal alignment
+   - Center containers: margin: 0 auto; width: 100%; max-width: 1200px;
+   - Consistent spacing: 1rem, 1.5rem, 2rem, 3rem, 4rem, 6rem
+   - ALWAYS use alignment: justify-content, align-items, text-align, margin: 0 auto;
+6. MODERN COLOR SCHEMES:
+   - Gradients: linear-gradient(135deg, #color1, #color2)
+   - Mixed warm and cool colors
+   - Proper contrast ratios
+   - CSS variables for theming
+7. TYPOGRAPHY:
+   - Fonts: 'Poppins' for body, 'Playfair Display' for headings (if appropriate)
+   - Hero headline: 3.5rem, font-weight: 700-800, line-height: 1.2
+   - Section headings: 2.5rem, font-weight: 600-700
+   - Body: 1.125rem, font-weight: 400, line-height: 1.7
+8. BUTTONS:
+   - Primary: gradient background, border-radius: 10px, padding: 1rem 2rem, hover: scale(1.05)
+   - Secondary: border style, transparent background
+   - Add icons with proper spacing
+9. ANIMATIONS:
+   - @keyframes fadeIn, slideInUp, pulse
+   - Smooth transitions: transition: all 0.3s ease
+   - Hover effects on cards, buttons, links
+10. SPACING:
+    - Section padding: 4rem to 6rem
+    - Card gaps: 2rem in grids
+    - Consistent margins between sections
+11. RESPONSIVE:
+    - Mobile: stack columns, reduce font sizes, adjust padding
+    - Tablet: adjust grid columns, moderate spacing
+    - Desktop: full layout with optimal spacing
+12. MODERN EFFECTS:
+    - Multiple shadow layers: box-shadow with rgba values
+    - Rounded corners: 8px to 16px
+    - Gradient backgrounds for hero sections
+    - Overlay effects for images
 
 Return ONLY the CSS code as a string. Do not include markdown code blocks, backticks, or explanations."""
 
-    context = f"""Create beautiful, modern, responsive CSS for: {prompt}
+    context = f"""Create PREMIUM, PROFESSIONAL CSS for: {prompt} - Design it like Bolt.new with cards, perfect alignment, and modern UI.
 
 PROJECT TYPE: {project_type}
 THEME: {theme}
 {color_scheme}
 
 HTML Structure (for reference):
-{html_code[:500]}
+{html_code[:800]}
 
-CRITICAL UI REQUIREMENTS:
-- Fully responsive (mobile, tablet, desktop)
-- HIGHLY ATTRACTIVE design with icons, animations, modern fonts
-- Smooth animations and transitions (fade-in, slide-in, hover effects)
-- Professional, polished appearance like premium websites
-- Perfect alignment and spacing
-- Use Google Fonts (Poppins, Inter, Playfair Display) - apply to body and headings
-- Style Font Awesome icons properly
-- Add keyframe animations for engaging effects (@keyframes fadeIn, slideIn, pulse)
-- Modern color schemes with gradients and shadows
-- Make buttons and interactive elements attractive with gradients, shadows, hover states
-- Use CSS variables for colors and spacing
-- Add box-shadows, border-radius, and modern styling throughout
-- Ensure perfect alignment - center content properly"""
+CRITICAL UI REQUIREMENTS (LIKE BOLT.NEW):
+1. CARD-BASED LAYOUTS:
+   - Style all .card, .feature-card elements with shadows, rounded corners (12px-16px), padding (1.5rem-2rem)
+   - Create card grids: display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem;
+   - Add hover effects: transform: translateY(-4px); box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+   - Card backgrounds: white or subtle gradients
+2. TWO-COLUMN HERO SECTION:
+   - Left column: text content with proper typography (headline 3.5rem, description, buttons)
+   - Right column: image/graphic with proper sizing
+   - Use grid: display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center;
+   - Responsive: stack on mobile with @media query
+3. PERFECT ALIGNMENT (CRITICAL - MUST IMPLEMENT ALL):
+   - .container {{ max-width: 1200px; margin: 0 auto; padding: 0 2rem; }}
+   - Center containers: margin: 0 auto; width: 100%; max-width: 1200px;
+   - Center headings: text-align: center; for h1, h2, h3 in hero and sections
+   - Left align paragraphs: text-align: left; for body text and descriptions
+   - Justify text: text-align: justify; for longer paragraphs
+   - Navigation: display: flex; justify-content: space-between; align-items: center; width: 100%;
+   - Hero alignment: display: flex; or grid with align-items: center; justify-content: space-between; or center;
+   - Button alignment: display: flex; gap: 1rem; justify-content: flex-start; or center;
+   - Flexbox centering: display: flex; justify-content: center; align-items: center; for perfect centering
+   - Grid alignment: Use place-items: center; or align-items: center; justify-items: center;
+   - Consistent spacing: Use rem units (1rem, 1.5rem, 2rem, 3rem, 4rem, 6rem) for all margins and padding
+   - ALWAYS use alignment properties: justify-content, align-items, text-align, margin: 0 auto;
+4. MODERN COLOR THEMES:
+   - Use gradients: linear-gradient(135deg, #color1, #color2)
+   - Mixed warm and cool colors
+   - CSS variables: :root {{ --primary: #...; --secondary: #...; }}
+   - Proper contrast for readability
+5. TYPOGRAPHY:
+   - Apply fonts: 'Poppins' for body, 'Playfair Display' for headings (if appropriate)
+   - Hero headline: 3.5rem, font-weight: 700-800, line-height: 1.2
+   - Section headings: 2.5rem, font-weight: 600-700
+   - Body: 1.125rem, font-weight: 400, line-height: 1.7
+6. BUTTONS:
+   - Primary: gradient background, border-radius: 10px, padding: 1rem 2rem, hover: transform: scale(1.05)
+   - Secondary: border style, transparent background
+   - Add icons with proper spacing
+7. RESPONSIVE:
+   - Mobile-first approach
+   - Breakpoints: 768px (mobile), 1024px (tablet)
+   - Adjust font sizes, spacing, and layouts for each breakpoint
+8. ANIMATIONS:
+   - @keyframes fadeIn, slideInUp, pulse
+   - Smooth transitions: transition: all 0.3s ease
+   - Hover effects on all interactive elements
+9. MODERN EFFECTS:
+   - Multiple shadow layers for depth: box-shadow with rgba values
+   - Rounded corners: 8px to 16px
+   - Gradient backgrounds
+   - Overlay effects
+
+Make it look like a premium, professional website with card-based layouts, perfect alignment, and modern design like Bolt.new creates."""
 
     try:
         response = provider.chat_completion(
