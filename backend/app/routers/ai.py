@@ -24,6 +24,7 @@ from app.ai_service_v2 import (
     generate_html_code,
     generate_css_code,
     generate_js_code,
+    generate_code_with_streaming,
     estimate_tokens
 )
 from app.ai_providers import get_provider
@@ -127,48 +128,128 @@ async def stream_project_creation(prompt: str, project_name: str, provider_name:
             yield f"data: {json.dumps({'type': 'task_complete', 'task_id': todo_list[0]['id'], 'completed_count': 1, 'total_tasks': len(todo_list)})}\n\n"
         
         # Step 4: Extract project requirements - separate token call
-        yield f"data: {json.dumps({'type': 'thinking', 'message': 'Analyzing design requirements...'})}\n\n"
+        yield f"data: {json.dumps({'type': 'thinking', 'message': 'Analyzing design requirements deeply...'})}\n\n"
+        await asyncio.sleep(5)  # Deep analysis time
         
         project_requirements = extract_project_requirements(prompt, provider)
         total_tokens_used += estimate_tokens(prompt)
         
-        # Step 5: Generate HTML code - separate token call with delay
+        # Step 5: Generate HTML code - separate token call with streaming
         yield f"data: {json.dumps({'type': 'task_start', 'task_id': 2, 'task': 'Creating HTML structure'})}\n\n"
-        yield f"data: {json.dumps({'type': 'thinking', 'message': 'Analyzing requirements and generating HTML structure...'})}\n\n"
-        await asyncio.sleep(2)  # Give time for analysis
+        yield f"data: {json.dumps({'type': 'thinking', 'message': 'Deeply analyzing requirements and generating beautiful HTML structure...'})}\n\n"
+        await asyncio.sleep(8)  # Deep analysis time for better UI
         
-        html_code = generate_html_code(prompt, project_requirements, provider)
-        total_tokens_used += estimate_tokens(prompt + html_code)
+        # Send code_start BEFORE starting generation so CodeView is ready
+        yield f"data: {json.dumps({'type': 'code_start', 'file': 'index.html'})}\n\n"
+        await asyncio.sleep(0.3)  # Small delay to ensure frontend is ready
+        html_code = ""
+        async for line in generate_code_with_streaming(prompt, project_requirements, "", provider, "html"):
+            html_code += line
+            yield f"data: {json.dumps({'type': 'code_line', 'file': 'index.html', 'line': line})}\n\n"
+        
+        # Calculate tokens and update
+        html_tokens = estimate_tokens(prompt + html_code)
+        total_tokens_used += html_tokens
+        try:
+            from app.ai_service import get_remaining_tokens
+            token_info = get_remaining_tokens()
+            token_limit = token_info.get("limit", 30000)
+            remaining_tokens = token_limit - total_tokens_used if token_limit else None
+            yield f"data: {json.dumps({'type': 'tokens_update', 'remaining_tokens': remaining_tokens, 'token_limit': token_limit})}\n\n"
+        except:
+            pass
+        
         save_file(project_id, "index.html", html_code)
         
+        # Send code_complete with full content to ensure frontend has it
+        yield f"data: {json.dumps({'type': 'code_complete', 'file': 'index.html', 'content': html_code, 'file_size': len(html_code)})}\n\n"
+        
+        # Wait longer to ensure frontend has processed all code lines and displayed them
+        # Calculate wait time based on code size (more code = more time to render)
+        wait_time = min(2 + (len(html_code) / 1000), 5)  # 2-5 seconds based on code size
+        await asyncio.sleep(wait_time)
+        
+        # Only mark task complete after code is fully generated, sent, and rendered
         if len(todo_list) > 1:
             todo_list[1]["completed"] = True
             yield f"data: {json.dumps({'type': 'task_complete', 'task_id': todo_list[1]['id'], 'completed_count': 2, 'total_tasks': len(todo_list)})}\n\n"
-        await asyncio.sleep(1)  # Delay before next task
+        await asyncio.sleep(2)  # Delay before next task
         
-        # Step 6: Generate CSS code - separate token call with delay
+        # Step 6: Generate CSS code - separate token call with streaming
         yield f"data: {json.dumps({'type': 'task_start', 'task_id': 3, 'task': 'Designing CSS styling'})}\n\n"
         yield f"data: {json.dumps({'type': 'thinking', 'message': 'Creating beautiful, responsive CSS with animations and modern design...'})}\n\n"
-        await asyncio.sleep(2)  # Give time for analysis
+        await asyncio.sleep(8)  # Deep analysis time for better UI
         
-        css_code = generate_css_code(prompt, project_requirements, html_code, provider)
-        total_tokens_used += estimate_tokens(prompt + css_code)
+        # Send code_start BEFORE starting generation so CodeView is ready
+        yield f"data: {json.dumps({'type': 'code_start', 'file': 'style.css'})}\n\n"
+        await asyncio.sleep(0.3)  # Small delay to ensure frontend is ready
+        css_code = ""
+        async for line in generate_code_with_streaming(prompt, project_requirements, html_code, provider, "css"):
+            css_code += line
+            yield f"data: {json.dumps({'type': 'code_line', 'file': 'style.css', 'line': line})}\n\n"
+        
+        # Calculate tokens and update
+        css_tokens = estimate_tokens(prompt + css_code)
+        total_tokens_used += css_tokens
+        try:
+            from app.ai_service import get_remaining_tokens
+            token_info = get_remaining_tokens()
+            token_limit = token_info.get("limit", 30000)
+            remaining_tokens = token_limit - total_tokens_used if token_limit else None
+            yield f"data: {json.dumps({'type': 'tokens_update', 'remaining_tokens': remaining_tokens, 'token_limit': token_limit})}\n\n"
+        except:
+            pass
+        
         save_file(project_id, "style.css", css_code)
         
+        # Send code_complete with full content to ensure frontend has it
+        yield f"data: {json.dumps({'type': 'code_complete', 'file': 'style.css', 'content': css_code, 'file_size': len(css_code)})}\n\n"
+        
+        # Wait longer to ensure frontend has processed all code lines and displayed them
+        wait_time = min(2 + (len(css_code) / 1000), 5)  # 2-5 seconds based on code size
+        await asyncio.sleep(wait_time)
+        
+        # Only mark task complete after code is fully generated, sent, and rendered
         if len(todo_list) > 2:
             todo_list[2]["completed"] = True
             yield f"data: {json.dumps({'type': 'task_complete', 'task_id': todo_list[2]['id'], 'completed_count': 3, 'total_tasks': len(todo_list)})}\n\n"
-        await asyncio.sleep(1)  # Delay before next task
+        await asyncio.sleep(2)  # Delay before next task
         
-        # Step 7: Generate JavaScript code - separate token call with delay
+        # Step 7: Generate JavaScript code - separate token call with streaming
         yield f"data: {json.dumps({'type': 'task_start', 'task_id': 4, 'task': 'Adding JavaScript functionality'})}\n\n"
         yield f"data: {json.dumps({'type': 'thinking', 'message': 'Implementing interactive JavaScript features...'})}\n\n"
-        await asyncio.sleep(2)  # Give time for analysis
+        await asyncio.sleep(8)  # Deep analysis time for better UI
         
-        js_code = generate_js_code(prompt, project_requirements, html_code, provider)
-        total_tokens_used += estimate_tokens(prompt + js_code)
+        # Send code_start BEFORE starting generation so CodeView is ready
+        yield f"data: {json.dumps({'type': 'code_start', 'file': 'script.js'})}\n\n"
+        await asyncio.sleep(0.3)  # Small delay to ensure frontend is ready
+        js_code = ""
+        async for line in generate_code_with_streaming(prompt, project_requirements, html_code, provider, "js"):
+            js_code += line
+            yield f"data: {json.dumps({'type': 'code_line', 'file': 'script.js', 'line': line})}\n\n"
+        
+        # Calculate tokens and update
+        js_tokens = estimate_tokens(prompt + js_code)
+        total_tokens_used += js_tokens
+        try:
+            from app.ai_service import get_remaining_tokens
+            token_info = get_remaining_tokens()
+            token_limit = token_info.get("limit", 30000)
+            remaining_tokens = token_limit - total_tokens_used if token_limit else None
+            yield f"data: {json.dumps({'type': 'tokens_update', 'remaining_tokens': remaining_tokens, 'token_limit': token_limit})}\n\n"
+        except:
+            pass
+        
         save_file(project_id, "script.js", js_code)
         
+        # Send code_complete with full content to ensure frontend has it
+        yield f"data: {json.dumps({'type': 'code_complete', 'file': 'script.js', 'content': js_code, 'file_size': len(js_code)})}\n\n"
+        
+        # Wait longer to ensure frontend has processed all code lines and displayed them
+        wait_time = min(2 + (len(js_code) / 1000), 5)  # 2-5 seconds based on code size
+        await asyncio.sleep(wait_time)
+        
+        # Only mark task complete after code is fully generated, sent, and rendered
         if len(todo_list) > 3:
             todo_list[3]["completed"] = True
             yield f"data: {json.dumps({'type': 'task_complete', 'task_id': todo_list[3]['id'], 'completed_count': 4, 'total_tasks': len(todo_list)})}\n\n"

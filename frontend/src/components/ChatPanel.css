@@ -223,6 +223,27 @@
   color: white;
 }
 
+.todo-item.generating .todo-checkbox {
+  background-color: #1a1a1a;
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
+
+.todo-loading-spinner {
+  display: inline-block;
+  animation: spin 1s linear infinite;
+  font-size: 14px;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .todo-text {
   flex: 1;
   line-height: 1.4;

@@ -1,11 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './CodeView.css';
 
-const CodeView = ({ projectFiles = null, isLoading = false }) => {
+const CodeView = ({ projectFiles = null, isLoading = false, activeFile = null, onFileChange = null }) => {
   const [expandedFiles, setExpandedFiles] = useState(['index.html', 'style.css', 'script.js']);
-  const [selectedFile, setSelectedFile] = useState('index.html');
+  const [selectedFile, setSelectedFile] = useState(activeFile || 'index.html');
+  
+  // Update selected file when activeFile prop changes (when code generation starts)
+  useEffect(() => {
+    if (activeFile) {
+      setSelectedFile(activeFile);
+    }
+  }, [activeFile]);
 
-  const files = projectFiles || [
+  // Ensure we always have file structure even if projectFiles is null
+  const files = projectFiles && projectFiles.length > 0 ? projectFiles : [
     { filename: 'index.html', content: '' },
     { filename: 'style.css', content: '' },
     { filename: 'script.js', content: '' }
@@ -13,6 +21,9 @@ const CodeView = ({ projectFiles = null, isLoading = false }) => {
 
   const handleFileClick = (filename) => {
     setSelectedFile(filename);
+    if (onFileChange) {
+      onFileChange(filename);
+    }
     if (!expandedFiles.includes(filename)) {
       setExpandedFiles(prev => [...prev, filename]);
     }
@@ -56,14 +67,8 @@ const CodeView = ({ projectFiles = null, isLoading = false }) => {
       </div>
 
       <div className="code-view-content">
-        {isLoading ? (
-          <div className="code-loading">
-            <div className="loading-spinner"></div>
-            <p>Creating project...</p>
-          </div>
-        ) : (
-          <>
-            <div className="file-tree">
+        <>
+          <div className="file-tree">
               <div className="file-tree-header">Project</div>
               <div className="file-tree-items">
                 {files.map((file) => (
@@ -89,7 +94,7 @@ const CodeView = ({ projectFiles = null, isLoading = false }) => {
                   <button
                     key={file.filename}
                     className={`code-tab ${selectedFile === file.filename ? 'active' : ''}`}
-                    onClick={() => setSelectedFile(file.filename)}
+                    onClick={() => handleFileClick(file.filename)}
                   >
                     {file.filename}
                   </button>
@@ -97,12 +102,11 @@ const CodeView = ({ projectFiles = null, isLoading = false }) => {
               </div>
               <div className="code-display">
                 <pre className="code-content">
-                  <code>{selectedFileContent || `// ${selectedFile} will appear here`}</code>
+                  <code>{selectedFileContent || (isLoading ? 'Generating...' : `// ${selectedFile} will appear here`)}</code>
                 </pre>
               </div>
             </div>
           </>
-        )}
       </div>
     </div>
   );

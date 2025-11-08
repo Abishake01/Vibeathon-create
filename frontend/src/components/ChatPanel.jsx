@@ -103,9 +103,11 @@ const ChatPanel = ({ onSendMessage, isLoading, todoList = [], description = '', 
                     </div>
                     <ul className="todo-items">
                       {todoList.map((todo) => (
-                        <li key={todo.id} className={`todo-item ${todo.completed ? 'completed' : ''}`}>
+                        <li key={todo.id} className={`todo-item ${todo.completed ? 'completed' : ''} ${todo.generating ? 'generating' : ''}`}>
                           <span className="todo-checkbox">
-                            {todo.completed ? '✓' : '○'}
+                            {todo.completed ? '✓' : todo.generating ? (
+                              <span className="todo-loading-spinner">⟳</span>
+                            ) : '○'}
                           </span>
                           <span className="todo-text">{todo.task}</span>
                         </li>
@@ -164,9 +166,9 @@ const ChatPanel = ({ onSendMessage, isLoading, todoList = [], description = '', 
               <option value="ollama">Ollama</option>
             </select>
           </div>
-          {tokenLimit !== null && (
-            <div style={{ fontSize: '12px', color: '#666' }}>
-              Tokens: {remainingTokens !== null ? remainingTokens.toLocaleString() : 'N/A'} / {tokenLimit.toLocaleString()}
+          {tokenLimit !== null && remainingTokens !== null && (
+            <div style={{ fontSize: '12px', color: '#666', fontWeight: '500' }}>
+              Tokens: {remainingTokens.toLocaleString()} / {tokenLimit.toLocaleString()}
             </div>
           )}
         </div>

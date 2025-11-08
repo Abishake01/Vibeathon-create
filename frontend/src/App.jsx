@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
 import Header from './components/Header';
 import ChatPanel from './components/ChatPanel';
@@ -19,17 +19,15 @@ function App() {
   const [efficiency, setEfficiency] = useState(null);
   const [thinkingMessage, setThinkingMessage] = useState('');
   const [aiProvider, setAiProvider] = useState('groq');
+  const [activeCodeFile, setActiveCodeFile] = useState('index.html');
+  const loadingFilesRef = useRef(new Set()); // Track which project IDs are currently loading
 
   useEffect(() => {
     // Load token info (no auth needed)
     loadTokenInfo();
   }, []);
 
-  useEffect(() => {
-    if (currentProject) {
-      loadProjectFiles(currentProject.id);
-    }
-  }, [currentProject]);
+  // Removed useEffect - we load files directly from streaming events to avoid conflicts
 
 
   const loadTokenInfo = async () => {
@@ -42,39 +40,66 @@ function App() {
     }
   };
 
-  const loadProjectFiles = async (projectId) => {
+  const loadProjectFiles = async (projectId, retryCount = 0) => {
     if (!projectId) {
       console.error('No project ID provided');
       return;
     }
     
+    // Prevent duplicate loading calls for the same project
+    if (loadingFilesRef.current.has(projectId) && retryCount === 0) {
+      console.log(`Already loading files for project ${projectId}, skipping...`);
+      return;
+    }
+    
+    // Maximum 3 retries with exponential backoff
+    const MAX_RETRIES = 3;
+    if (retryCount >= MAX_RETRIES) {
+      console.error('Max retries reached for loading project files');
+      loadingFilesRef.current.delete(projectId);
+      setIsLoading(false);
+      return;
+    }
+    
+    // Mark as loading
+    if (retryCount === 0) {
+      loadingFilesRef.current.add(projectId);
+    }
+    
     try {
-      setIsLoading(true);
-      // First verify project exists
-      try {
-        await projectsAPI.get(projectId);
-      } catch (error) {
-        console.error('Project not found, retrying...', error);
-        // Retry after a short delay
-        setTimeout(() => {
-          loadProjectFiles(projectId);
-        }, 1000);
-        return;
+      // Don't set loading if we're retrying (to avoid UI flicker)
+      if (retryCount === 0) {
+        setIsLoading(true);
       }
       
+      // Try to get files directly - no need to check if project exists first
       const data = await projectsAPI.getFiles(projectId);
       setProjectFiles(data.files);
       setPreviewUrl(projectsAPI.getPreviewUrl(projectId));
-    } catch (error) {
-      console.error('Error loading project files:', error);
-      // Retry once after delay
-      if (projectId) {
-        setTimeout(() => {
-          loadProjectFiles(projectId);
-        }, 2000);
-      }
-    } finally {
       setIsLoading(false);
+      loadingFilesRef.current.delete(projectId);
+    } catch (error) {
+      // Only log and retry if it's a 404 or network error
+      if (error.response?.status === 404 || error.code === 'ERR_NETWORK') {
+        if (retryCount < MAX_RETRIES - 1) {
+          console.log(`Project files not ready yet (attempt ${retryCount + 1}/${MAX_RETRIES}), retrying...`);
+          // Retry with exponential backoff: 1s, 2s, 4s
+          const delay = Math.pow(2, retryCount) * 1000;
+          setTimeout(() => {
+            loadProjectFiles(projectId, retryCount + 1);
+          }, delay);
+        } else {
+          // Last retry failed
+          console.error('Max retries reached for loading project files');
+          loadingFilesRef.current.delete(projectId);
+          setIsLoading(false);
+        }
+      } else {
+        // Other errors - don't retry
+        console.error('Error loading project files:', error);
+        loadingFilesRef.current.delete(projectId);
+        setIsLoading(false);
+      }
     }
   };
 
@@ -150,18 +175,88 @@ function App() {
             break;
           
           case 'task_start':
-            // Task started
-            break;
-          
-          case 'task_complete':
-            // Mark task as completed
+            // Task started - mark as generating
             setTodoList(prev => 
               prev.map(todo => 
                 todo.id === streamData.task_id 
-                  ? { ...todo, completed: true }
+                  ? { ...todo, generating: true, completed: false }
                   : todo
               )
             );
+            break;
+          
+          case 'task_complete':
+            // Mark task as completed - remove generating flag
+            setTodoList(prev => 
+              prev.map(todo => 
+                todo.id === streamData.task_id 
+                  ? { ...todo, completed: true, generating: false }
+                  : { ...todo, generating: false }
+              )
+            );
+            break;
+          
+          case 'code_start':
+            // Code generation started for a file - initialize empty file
+            setProjectFiles(prev => {
+              const files = prev || [];
+              const existing = files.find(f => f.filename === streamData.file);
+              if (!existing) {
+                return [...files, { filename: streamData.file, content: '' }];
+              }
+              return files.map(f => 
+                f.filename === streamData.file 
+                  ? { ...f, content: '' } 
+                  : f
+              );
+            });
+            // Auto-switch to the file being generated in CodeView
+            setActiveCodeFile(streamData.file);
+            // Ensure CodeView is visible (switch to code view)
+            setCurrentView('code');
+            break;
+          
+          case 'code_line':
+            // Stream code line by line
+            setProjectFiles(prev => {
+              const files = prev || [];
+              const file = files.find(f => f.filename === streamData.file);
+              if (file) {
+                return files.map(f => 
+                  f.filename === streamData.file 
+                    ? { ...f, content: f.content + streamData.line } 
+                    : f
+                );
+              } else {
+                return [...files, { filename: streamData.file, content: streamData.line }];
+              }
+            });
+            break;
+          
+          case 'code_complete':
+            // Code generation completed for a file - ensure full content is set
+            if (streamData.content) {
+              setProjectFiles(prev => {
+                const files = prev || [];
+                const file = files.find(f => f.filename === streamData.file);
+                if (file) {
+                  return files.map(f => 
+                    f.filename === streamData.file 
+                      ? { ...f, content: streamData.content } 
+                      : f
+                  );
+                } else {
+                  return [...files, { filename: streamData.file, content: streamData.content }];
+                }
+              });
+              // Ensure CodeView is showing this file
+              setActiveCodeFile(streamData.file);
+              // Force a small delay to ensure React has rendered the content
+              setTimeout(() => {
+                // Content should now be visible in CodeView
+                console.log(`Code complete for ${streamData.file}, content length: ${streamData.content.length}`);
+              }, 100);
+            }
             break;
           
           case 'code_generated':
@@ -245,6 +340,8 @@ function App() {
             <CodeView
               projectFiles={projectFiles}
               isLoading={isLoading}
+              activeFile={activeCodeFile}
+              onFileChange={setActiveCodeFile}
             />
           )}
         </div>

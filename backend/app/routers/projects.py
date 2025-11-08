@@ -64,7 +64,16 @@ async def get_project(
     db: Session = Depends(get_db)
 ):
     """Get a specific project by ID. No authentication required."""
-    project = db.query(Project).filter(Project.id == project_id).first()
+    import asyncio
+    
+    # Try up to 3 times with increasing delays (handles race conditions)
+    project = None
+    for attempt in range(3):
+        project = db.query(Project).filter(Project.id == project_id).first()
+        if project:
+            break
+        if attempt < 2:  # Don't sleep on last attempt
+            await asyncio.sleep(0.5 * (attempt + 1))  # 0.5s, 1s delays
     
     if not project:
         raise HTTPException(
@@ -131,17 +140,41 @@ async def get_project_files(
     db: Session = Depends(get_db)
 ):
     """Get all files (HTML, CSS, JS) for a project. No authentication required."""
-    # Verify project exists
-    project = db.query(Project).filter(Project.id == project_id).first()
+    # Try to verify project exists, but be lenient for race conditions
+    import asyncio
+    project = None
     
+    # Try up to 3 times with increasing delays (handles race conditions)
+    for attempt in range(3):
+        project = db.query(Project).filter(Project.id == project_id).first()
+        if project:
+            break
+        if attempt < 2:  # Don't sleep on last attempt
+            await asyncio.sleep(0.5 * (attempt + 1))  # 0.5s, 1s delays
+    
+    # Even if project not found in DB, try to get files if they exist on disk
+    files = get_all_files(project_id)
+    
+    # If we have files, return them even if project not in DB yet (race condition)
+    if files and any(files.values()):
+        file_list = [
+            FileContent(filename=filename, content=content)
+            for filename, content in files.items()
+        ]
+        
+        return ProjectFilesResponse(
+            project_id=project_id,
+            files=file_list
+        )
+    
+    # If no project and no files, return 404
     if not project:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Project not found"
         )
     
-    files = get_all_files(project_id)
-    
+    # Project exists but no files yet - return empty files
     file_list = [
         FileContent(filename=filename, content=content)
         for filename, content in files.items()
