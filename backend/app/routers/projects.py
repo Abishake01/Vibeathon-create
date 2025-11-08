@@ -225,26 +225,87 @@ async def preview_project(
     db: Session = Depends(get_db)
 ):
     """Render the project as a live preview (combine HTML, CSS, JS). No authentication required."""
-    # Verify project exists - retry once if not found (handles race conditions)
-    project = db.query(Project).filter(Project.id == project_id).first()
+    # Verify project exists - retry multiple times if not found (handles race conditions)
+    import asyncio
+    project = None
+    
+    # Try up to 5 times with increasing delays
+    for attempt in range(5):
+        project = db.query(Project).filter(Project.id == project_id).first()
+        if project:
+            break
+        if attempt < 4:  # Don't sleep on last attempt
+            await asyncio.sleep(0.5 * (attempt + 1))  # Increasing delay: 0.5s, 1s, 1.5s, 2s
     
     if not project:
-        # Retry once after a short delay (handles database commit timing)
-        import asyncio
-        await asyncio.sleep(0.2)
-        project = db.query(Project).filter(Project.id == project_id).first()
+        # Even if project not found, try to serve files if they exist
+        try:
+            files = get_all_files(project_id)
+            if files and any(files.values()):  # If files exist, serve them anyway
+                html_content = files.get("index.html", "")
+                css_content = files.get("style.css", "")
+                js_content = files.get("script.js", "")
+                
+                # Remove external CSS and JS links to prevent 404 errors
+                import re
+                html_content = re.sub(r'<link[^>]*rel=["\']stylesheet["\'][^>]*>', '', html_content, flags=re.IGNORECASE)
+                html_content = re.sub(r'<link[^>]*href=["\'][^"\']*\.css["\'][^>]*>', '', html_content, flags=re.IGNORECASE)
+                html_content = re.sub(r'<script[^>]*src=["\'][^"\']*\.js["\'][^>]*></script>', '', html_content, flags=re.IGNORECASE)
+                html_content = re.sub(r'<script[^>]*src=["\'][^"\']*["\'][^>]*>.*?</script>', '', html_content, flags=re.IGNORECASE | re.DOTALL)
+                
+                # Combine and serve
+                if "<!DOCTYPE html>" not in html_content and "<html" not in html_content:
+                    preview_html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preview</title>
+    <style>
+        {css_content}
+    </style>
+</head>
+<body>
+    {html_content}
+    <script>
+        {js_content}
+    </script>
+</body>
+</html>"""
+                else:
+                    html_content = re.sub(r'<style[^>]*>.*?</style>', '', html_content, flags=re.IGNORECASE | re.DOTALL)
+                    if "</head>" in html_content:
+                        html_content = html_content.replace("</head>", f"<style>\n{css_content}\n</style>\n</head>")
+                    html_content = re.sub(r'<script[^>]*>.*?</script>', '', html_content, flags=re.IGNORECASE | re.DOTALL)
+                    if "</body>" in html_content:
+                        html_content = html_content.replace("</body>", f"<script>\n{js_content}\n</script>\n</body>")
+                    preview_html = html_content
+                
+                return HTMLResponse(content=preview_html)
+        except:
+            pass
         
-        if not project:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Project not found"
-            )
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Project not found"
+        )
     
     files = get_all_files(project_id)
     
     html_content = files.get("index.html", "")
     css_content = files.get("style.css", "")
     js_content = files.get("script.js", "")
+    
+    # Remove external CSS and JS links to prevent 404 errors
+    import re
+    # Remove <link> tags for CSS files
+    html_content = re.sub(r'<link[^>]*rel=["\']stylesheet["\'][^>]*>', '', html_content, flags=re.IGNORECASE)
+    # Remove <link> tags for styles.css, style.css, etc.
+    html_content = re.sub(r'<link[^>]*href=["\'][^"\']*\.css["\'][^>]*>', '', html_content, flags=re.IGNORECASE)
+    # Remove external <script src=""> tags (keep inline scripts)
+    html_content = re.sub(r'<script[^>]*src=["\'][^"\']*\.js["\'][^>]*></script>', '', html_content, flags=re.IGNORECASE)
+    # Remove any remaining script tags with src attribute
+    html_content = re.sub(r'<script[^>]*src=["\'][^"\']*["\'][^>]*>.*?</script>', '', html_content, flags=re.IGNORECASE | re.DOTALL)
     
     # Combine HTML, CSS, and JS into a single HTML document
     if "<!DOCTYPE html>" not in html_content and "<html" not in html_content:
@@ -268,18 +329,23 @@ async def preview_project(
 </html>"""
     else:
         # Inject CSS and JS into existing HTML
+        # Remove any existing <style> tags and replace with our CSS
+        html_content = re.sub(r'<style[^>]*>.*?</style>', '', html_content, flags=re.IGNORECASE | re.DOTALL)
+        
         # Try to inject CSS in head
-        if "<style>" not in html_content and "</head>" in html_content:
+        if "</head>" in html_content:
             html_content = html_content.replace("</head>", f"<style>\n{css_content}\n</style>\n</head>")
         elif "<head>" in html_content:
             html_content = html_content.replace("<head>", f"<head>\n<style>\n{css_content}\n</style>")
         else:
             html_content = f"<style>\n{css_content}\n</style>\n{html_content}"
         
+        # Remove any existing inline scripts (but keep structure)
+        # We'll add our JS at the end
+        html_content = re.sub(r'<script[^>]*>.*?</script>', '', html_content, flags=re.IGNORECASE | re.DOTALL)
+        
         # Try to inject JS before closing body tag
-        if "<script>" not in html_content and "</body>" in html_content:
-            html_content = html_content.replace("</body>", f"<script>\n{js_content}\n</script>\n</body>")
-        elif "</body>" in html_content:
+        if "</body>" in html_content:
             html_content = html_content.replace("</body>", f"<script>\n{js_content}\n</script>\n</body>")
         else:
             html_content = f"{html_content}\n<script>\n{js_content}\n</script>"

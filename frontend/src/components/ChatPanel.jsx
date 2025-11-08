@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './ChatPanel.css';
 
-const ChatPanel = ({ onSendMessage, isLoading, todoList = [], description = '', remainingTokens = null, thinkingMessage = '', efficiency = null }) => {
+const ChatPanel = ({ onSendMessage, isLoading, todoList = [], description = '', remainingTokens = null, tokenLimit = null, thinkingMessage = '', efficiency = null, aiProvider, onProviderChange }) => {
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState([]);
   const messagesEndRef = useRef(null);
@@ -66,21 +66,7 @@ const ChatPanel = ({ onSendMessage, isLoading, todoList = [], description = '', 
 
   return (
     <div className="chat-panel">
-      <div className="chat-header">
-        <div className="chat-header-left">
-          <span className="logo-small">b</span>
-          <span className="separator">/</span>
-          <span className="avatar-small">A</span>
-          <span className="separator">/</span>
-          <span className="project-title">Coffee Shop Page</span>
-        </div>
-        <button className="eye-icon-btn" title="Preview">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-            <circle cx="12" cy="12" r="3"></circle>
-          </svg>
-        </button>
-      </div>
+     
 
       <div className="chat-messages">
         {messages.length === 0 && (
@@ -157,21 +143,36 @@ const ChatPanel = ({ onSendMessage, isLoading, todoList = [], description = '', 
       </div>
 
       <div className="chat-input-container">
-        {efficiency && (
-          <div className="efficiency-info" style={{ padding: '8px', fontSize: '12px', color: '#666' }}>
-            ⚡ Efficiency: {efficiency.percent}% saved ({efficiency.saved.toLocaleString()} tokens)
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '8px', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <label style={{ fontSize: '12px', color: '#666' }}>AI Provider:</label>
+            <select 
+              value={aiProvider} 
+              onChange={(e) => onProviderChange && onProviderChange(e.target.value)}
+              disabled={isLoading}
+              style={{ 
+                padding: '4px 8px', 
+                borderRadius: '4px', 
+                border: '1px solid #ddd',
+                fontSize: '12px',
+                cursor: isLoading ? 'not-allowed' : 'pointer',
+                backgroundColor: '#1f1f1e'
+              }}
+            >
+              <option value="groq">Groq</option>
+              <option value="openai">OpenAI</option>
+              <option value="ollama">Ollama</option>
+            </select>
           </div>
-        )}
+          {tokenLimit !== null && (
+            <div style={{ fontSize: '12px', color: '#666' }}>
+              Tokens: {remainingTokens !== null ? remainingTokens.toLocaleString() : 'N/A'} / {tokenLimit.toLocaleString()}
+            </div>
+          )}
+        </div>
         <form onSubmit={handleSubmit} className="chat-input-form">
           <div className="input-actions">
-            <button type="button" className="action-btn">Let's build</button>
-            <button type="button" className="action-btn icon-only">+</button>
-            <button type="button" className="action-btn">Select</button>
-            <button type="button" className="action-btn">
-              <span className="lightbulb-icon">💡</span>
-              Plan
-            </button>
-            <button type="button" className="action-btn toggle-btn"></button>
+           
           </div>
           <input
             type="text"

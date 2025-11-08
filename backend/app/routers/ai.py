@@ -16,14 +16,17 @@ from app.schemas import (
     TokenInfo,
     ProjectResponse
 )
-from app.ai_service import (
+from app.ai_service_v2 import (
     detect_user_intent,
     generate_todo_list,
     generate_project_description,
-    generate_code_from_prompt,
-    get_remaining_tokens,
+    extract_project_requirements,
+    generate_html_code,
+    generate_css_code,
+    generate_js_code,
     estimate_tokens
 )
+from app.ai_providers import get_provider
 from app.file_handler import (
     create_project_directory,
     save_file,
@@ -33,30 +36,44 @@ from app.file_handler import (
 router = APIRouter(prefix="/ai", tags=["ai"])
 
 
-async def stream_project_creation(prompt: str, project_name: str, db: Session):
-    """Stream project creation with step-by-step updates."""
+async def stream_project_creation(prompt: str, project_name: str, provider_name: str, db: Session):
+    """Stream project creation with step-by-step updates - each task uses separate tokens."""
     project_id = None
     total_tokens_used = 0
     
     try:
-        # Step 0: Detect user intent
-        yield f"data: {json.dumps({'type': 'thinking', 'message': 'Understanding your request...'})}\n\n"
-        
-        intent_result = detect_user_intent(prompt)
-        intent_tokens = estimate_tokens(prompt)
-        total_tokens_used += intent_tokens
-        
-        # If user doesn't want to create a webpage, return conversation/ideas response
-        if intent_result["intent"] != "create_webpage":
-            yield f"data: {json.dumps({'type': 'conversation', 'message': intent_result.get('response', 'How can I help you?'), 'intent': intent_result['intent']})}\n\n"
+        # Get AI provider
+        try:
+            provider = get_provider(provider_name)
+        except Exception as provider_error:
+            yield f"data: {json.dumps({'type': 'error', 'message': f'Failed to initialize {provider_name} provider: {str(provider_error)}'})}\n\n"
             return
         
-        # Step 1: Generate todo list
-        yield f"data: {json.dumps({'type': 'thinking', 'message': 'Analyzing requirements and creating plan...'})}\n\n"
+        # Step 0: Detect user intent - separate token call
+        yield f"data: {json.dumps({'type': 'thinking', 'message': 'Understanding your request...'})}\n\n"
         
-        todo_list_data = generate_todo_list(prompt)
-        todo_tokens = estimate_tokens(prompt + str(todo_list_data))
-        total_tokens_used += todo_tokens
+        intent_result = detect_user_intent(prompt, provider)
+        usage = intent_result.get("usage", {})
+        total_tokens_used += usage.get("total_tokens", estimate_tokens(prompt))
+        
+        # If user doesn't want to create a webpage, return conversation/ideas response
+        if intent_result.get("intent") != "create_webpage":
+            yield f"data: {json.dumps({'type': 'conversation', 'message': intent_result.get('response', 'How can I help you?'), 'intent': intent_result.get('intent')})}\n\n"
+            return
+        
+        # Step 1: Generate project description - separate token call
+        yield f"data: {json.dumps({'type': 'thinking', 'message': 'Generating project description...'})}\n\n"
+        
+        description = generate_project_description(prompt, provider)
+        total_tokens_used += estimate_tokens(prompt + description)
+        
+        yield f"data: {json.dumps({'type': 'description', 'description': description})}\n\n"
+        
+        # Step 2: Generate todo list - separate token call
+        yield f"data: {json.dumps({'type': 'thinking', 'message': 'Creating detailed plan...'})}\n\n"
+        
+        todo_list_data = generate_todo_list(prompt, provider)
+        total_tokens_used += estimate_tokens(prompt + str(todo_list_data))
         
         # Stream todo list items one by one with typing effect
         todo_list = []
@@ -80,15 +97,6 @@ async def stream_project_creation(prompt: str, project_name: str, db: Session):
         
         yield f"data: {json.dumps({'type': 'todo_complete'})}\n\n"
         
-        # Step 2: Generate project description
-        yield f"data: {json.dumps({'type': 'thinking', 'message': 'Generating project description...'})}\n\n"
-        
-        description = generate_project_description(prompt)
-        desc_tokens = estimate_tokens(prompt + description)
-        total_tokens_used += desc_tokens
-        
-        yield f"data: {json.dumps({'type': 'description', 'description': description})}\n\n"
-        
         # Step 3: Create project in database
         yield f"data: {json.dumps({'type': 'thinking', 'message': 'Setting up project structure...'})}\n\n"
         
@@ -102,70 +110,88 @@ async def stream_project_creation(prompt: str, project_name: str, db: Session):
         db.refresh(project)
         project_id = project.id
         
+        # Ensure project is fully committed before proceeding
+        await asyncio.sleep(0.3)
+        
         yield f"data: {json.dumps({'type': 'project_created', 'project_id': project_id})}\n\n"
         
         # Create project directory
         create_project_directory(project_id)
         
-        # Step 4: Extract project requirements
-        from app.ai_service import extract_project_requirements
-        project_requirements = extract_project_requirements(prompt)
-        req_tokens = estimate_tokens(prompt)
-        total_tokens_used += req_tokens
+        # Small delay to ensure directory is created
+        await asyncio.sleep(0.2)
         
-        # Step 5: Complete tasks one by one and generate code per task
-        completed_count = 0
-        code_files = {"html": "", "css": "", "js": ""}
+        # Mark "Project structure setup" task as complete
+        if todo_list:
+            todo_list[0]["completed"] = True
+            yield f"data: {json.dumps({'type': 'task_complete', 'task_id': todo_list[0]['id'], 'completed_count': 1, 'total_tasks': len(todo_list)})}\n\n"
         
-        for idx, todo in enumerate(todo_list, 1):
-            yield f"data: {json.dumps({'type': 'task_start', 'task_id': todo['id'], 'task': todo['task']})}\n\n"
-            
-            # Generate code for each task separately
-            if idx == len(todo_list):  # Last task - generate all code
-                yield f"data: {json.dumps({'type': 'thinking', 'message': f'Generating beautiful, responsive code...'})}\n\n"
-                
-                try:
-                    code_files = generate_code_from_prompt(prompt, todo_list_data, project_requirements)
-                    
-                    # Validate code was generated
-                    if not code_files.get("html") or not code_files.get("css"):
-                        raise ValueError("Code generation returned empty files")
-                    
-                    code_tokens = estimate_tokens(prompt + code_files["html"] + code_files["css"] + code_files["js"])
-                    total_tokens_used += code_tokens
-                    
-                    # Save files
-                    yield f"data: {json.dumps({'type': 'thinking', 'message': 'Saving files...'})}\n\n"
-                    if code_files["html"]:
-                        save_file(project_id, "index.html", code_files["html"])
-                    if code_files["css"]:
-                        save_file(project_id, "style.css", code_files["css"])
-                    if code_files["js"]:
-                        save_file(project_id, "script.js", code_files["js"])
-                    
-                    yield f"data: {json.dumps({'type': 'code_generated', 'message': 'Code files generated and saved successfully'})}\n\n"
-                    
-                except Exception as code_error:
-                    import traceback
-                    error_details = traceback.format_exc()
-                    print(f"Error generating code: {error_details}")
-                    yield f"data: {json.dumps({'type': 'error', 'message': f'Code generation failed: {str(code_error)}'})}\n\n"
-                    raise
-            
-            # Mark todo as completed
-            todo["completed"] = True
-            completed_count += 1
-            
-            yield f"data: {json.dumps({'type': 'task_complete', 'task_id': todo['id'], 'completed_count': completed_count, 'total_tasks': len(todo_list)})}\n\n"
+        # Step 4: Extract project requirements - separate token call
+        yield f"data: {json.dumps({'type': 'thinking', 'message': 'Analyzing design requirements...'})}\n\n"
         
-        # Step 6: Calculate efficiency
-        # Estimate baseline tokens (what it would take without optimization)
-        baseline_estimate = estimate_tokens(prompt) * 10  # Rough estimate
-        efficiency_saved = max(0, baseline_estimate - total_tokens_used)
-        efficiency_percent = (efficiency_saved / baseline_estimate * 100) if baseline_estimate > 0 else 0
+        project_requirements = extract_project_requirements(prompt, provider)
+        total_tokens_used += estimate_tokens(prompt)
+        
+        # Step 5: Generate HTML code - separate token call with delay
+        yield f"data: {json.dumps({'type': 'task_start', 'task_id': 2, 'task': 'Creating HTML structure'})}\n\n"
+        yield f"data: {json.dumps({'type': 'thinking', 'message': 'Analyzing requirements and generating HTML structure...'})}\n\n"
+        await asyncio.sleep(2)  # Give time for analysis
+        
+        html_code = generate_html_code(prompt, project_requirements, provider)
+        total_tokens_used += estimate_tokens(prompt + html_code)
+        save_file(project_id, "index.html", html_code)
+        
+        if len(todo_list) > 1:
+            todo_list[1]["completed"] = True
+            yield f"data: {json.dumps({'type': 'task_complete', 'task_id': todo_list[1]['id'], 'completed_count': 2, 'total_tasks': len(todo_list)})}\n\n"
+        await asyncio.sleep(1)  # Delay before next task
+        
+        # Step 6: Generate CSS code - separate token call with delay
+        yield f"data: {json.dumps({'type': 'task_start', 'task_id': 3, 'task': 'Designing CSS styling'})}\n\n"
+        yield f"data: {json.dumps({'type': 'thinking', 'message': 'Creating beautiful, responsive CSS with animations and modern design...'})}\n\n"
+        await asyncio.sleep(2)  # Give time for analysis
+        
+        css_code = generate_css_code(prompt, project_requirements, html_code, provider)
+        total_tokens_used += estimate_tokens(prompt + css_code)
+        save_file(project_id, "style.css", css_code)
+        
+        if len(todo_list) > 2:
+            todo_list[2]["completed"] = True
+            yield f"data: {json.dumps({'type': 'task_complete', 'task_id': todo_list[2]['id'], 'completed_count': 3, 'total_tasks': len(todo_list)})}\n\n"
+        await asyncio.sleep(1)  # Delay before next task
+        
+        # Step 7: Generate JavaScript code - separate token call with delay
+        yield f"data: {json.dumps({'type': 'task_start', 'task_id': 4, 'task': 'Adding JavaScript functionality'})}\n\n"
+        yield f"data: {json.dumps({'type': 'thinking', 'message': 'Implementing interactive JavaScript features...'})}\n\n"
+        await asyncio.sleep(2)  # Give time for analysis
+        
+        js_code = generate_js_code(prompt, project_requirements, html_code, provider)
+        total_tokens_used += estimate_tokens(prompt + js_code)
+        save_file(project_id, "script.js", js_code)
+        
+        if len(todo_list) > 3:
+            todo_list[3]["completed"] = True
+            yield f"data: {json.dumps({'type': 'task_complete', 'task_id': todo_list[3]['id'], 'completed_count': 4, 'total_tasks': len(todo_list)})}\n\n"
+        
+        # Mark remaining tasks as complete
+        for idx in range(4, len(todo_list)):
+            todo_list[idx]["completed"] = True
+            yield f"data: {json.dumps({'type': 'task_complete', 'task_id': todo_list[idx]['id'], 'completed_count': idx + 1, 'total_tasks': len(todo_list)})}\n\n"
+        
+        yield f"data: {json.dumps({'type': 'code_generated', 'message': 'All code files generated and saved successfully'})}\n\n"
+        
+        # Step 8: Calculate token info
+        try:
+            from app.ai_service import get_remaining_tokens
+            token_info = get_remaining_tokens()
+            token_limit = token_info.get("limit", 30000)
+            remaining_tokens = token_limit - total_tokens_used if token_limit else None
+        except:
+            token_limit = 30000
+            remaining_tokens = token_limit - total_tokens_used
         
         # Final response
-        yield f"data: {json.dumps({'type': 'complete', 'project_id': project_id, 'todo_list': todo_list, 'description': description, 'efficiency_saved': int(efficiency_saved), 'efficiency_percent': round(efficiency_percent, 1), 'tokens_used': total_tokens_used})}\n\n"
+        yield f"data: {json.dumps({'type': 'complete', 'project_id': project_id, 'todo_list': todo_list, 'description': description, 'tokens_used': total_tokens_used, 'token_limit': token_limit, 'remaining_tokens': remaining_tokens})}\n\n"
         
     except Exception as e:
         import traceback
@@ -186,9 +212,10 @@ async def create_project_with_ai_stream(
     Shows todo list generation, task completion, and code generation in real-time.
     """
     project_name = project_data.name or project_data.prompt[:50]
+    provider_name = project_data.provider or "groq"
     
     return StreamingResponse(
-        stream_project_creation(project_data.prompt, project_name, db),
+        stream_project_creation(project_data.prompt, project_name, provider_name, db),
         media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",

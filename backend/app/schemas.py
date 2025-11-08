@@ -74,6 +74,7 @@ class TodoItem(BaseModel):
 class AIProjectCreate(BaseModel):
     prompt: str
     name: Optional[str] = None
+    provider: Optional[str] = "groq"  # groq, openai, ollama
 
 
 class AIProjectResponse(BaseModel):

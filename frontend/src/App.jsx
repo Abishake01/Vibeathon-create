@@ -15,8 +15,10 @@ function App() {
   const [todoList, setTodoList] = useState([]);
   const [description, setDescription] = useState('');
   const [remainingTokens, setRemainingTokens] = useState(null);
+  const [tokenLimit, setTokenLimit] = useState(null);
   const [efficiency, setEfficiency] = useState(null);
   const [thinkingMessage, setThinkingMessage] = useState('');
+  const [aiProvider, setAiProvider] = useState('groq');
 
   useEffect(() => {
     // Load token info (no auth needed)
@@ -34,6 +36,7 @@ function App() {
     try {
       const tokenInfo = await aiAPI.getTokens();
       setRemainingTokens(tokenInfo.remaining);
+      setTokenLimit(tokenInfo.limit);
     } catch (error) {
       console.error('Error loading token info:', error);
     }
@@ -87,7 +90,7 @@ function App() {
 
     try {
       // Use streaming API
-      await aiAPI.createProject(message, null, (streamData) => {
+      await aiAPI.createProject(message, null, aiProvider, (streamData) => {
         switch (streamData.type) {
           case 'thinking':
             // Show thinking message
@@ -142,12 +145,8 @@ function App() {
             break;
           
           case 'project_created':
-            // Project created - set project and load files after a delay
+            // Project created - set project but don't load files yet (wait for code generation)
             setCurrentProject({ id: streamData.project_id });
-            // Wait a bit for database to be ready
-            setTimeout(() => {
-              loadProjectFiles(streamData.project_id);
-            }, 500);
             break;
           
           case 'task_start':
@@ -166,12 +165,13 @@ function App() {
             break;
           
           case 'code_generated':
-            // Code has been generated and saved
-            if (currentProject?.id) {
-              // Reload files to show the generated code
+            // Code has been generated and saved - now load files
+            if (streamData.project_id || currentProject?.id) {
+              const projectId = streamData.project_id || currentProject.id;
+              // Wait longer to ensure files are saved and project is committed
               setTimeout(() => {
-                loadProjectFiles(currentProject.id);
-              }, 500);
+                loadProjectFiles(projectId);
+              }, 1500);
             }
             break;
           
@@ -181,17 +181,14 @@ function App() {
             setTodoList(streamData.todo_list || []);
             setDescription(streamData.description || '');
             setRemainingTokens(streamData.remaining_tokens);
-            setEfficiency({
-              saved: streamData.efficiency_saved || 0,
-              percent: streamData.efficiency_percent || 0
-            });
+            setTokenLimit(streamData.token_limit);
             setThinkingMessage('');
             setIsLoading(false);
             
-            // Load project files after a short delay to ensure files are saved
+            // Load project files after a delay to ensure files are saved and project is committed
             setTimeout(() => {
               loadProjectFiles(streamData.project_id);
-            }, 500);
+            }, 2000);
             break;
           
           case 'error':
@@ -230,8 +227,11 @@ function App() {
             todoList={todoList}
             description={description}
             remainingTokens={remainingTokens}
+            tokenLimit={tokenLimit}
             thinkingMessage={thinkingMessage}
             efficiency={efficiency}
+            aiProvider={aiProvider}
+            onProviderChange={setAiProvider}
           />
         </div>
         <div className="right-panel">

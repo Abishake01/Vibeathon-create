@@ -95,7 +95,7 @@ export const projectsAPI = {
 };
 
 export const aiAPI = {
-  createProject: async (prompt, name = null, onStream = null) => {
+  createProject: async (prompt, name = null, provider = 'groq', onStream = null) => {
     if (onStream) {
       // Use streaming endpoint
       const response = await fetch(`${API_BASE_URL}/ai/create-project-stream`, {
@@ -103,7 +103,7 @@ export const aiAPI = {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ prompt, name }),
+        body: JSON.stringify({ prompt, name, provider }),
       });
 
       const reader = response.body.getReader();
