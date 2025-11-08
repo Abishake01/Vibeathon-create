@@ -1,13 +1,15 @@
-# AI Web Builder Frontend
+# Web Builder Frontend
 
-A React frontend for the AI Web Builder platform - similar to Bolt.new.
+A React frontend for the Web Builder platform - similar to Bolt.new. A code editor for creating HTML, CSS, and JavaScript projects.
 
 ## Features
 
 - 🎨 Dark theme UI matching modern design
-- 💬 Interactive chat interface for AI prompts
-- 👁️ Live preview of generated web pages
-- 📱 Responsive two-column layout
+- 📝 Code editor with tabs for HTML, CSS, and JavaScript
+- 👁️ Live preview of web pages
+- 📁 Project management (create, list, select projects)
+- 💾 Auto-save functionality
+- 📱 Responsive three-column layout
 - 🔐 Automatic authentication handling
 
 ## Setup
@@ -43,8 +45,10 @@ The frontend will be available at `http://localhost:5173` (or the port shown in 
 
 1. **Start the backend server** first (see backend README)
 2. **Start the frontend** with `npm run dev`
-3. **Enter a prompt** in the chat input (e.g., "create a coffee shop webpage")
-4. **View the preview** in the right panel once generation completes
+3. **Create a new project** by clicking the "+" button in the sidebar
+4. **Edit code** in the editor panel (HTML, CSS, JS tabs)
+5. **View live preview** in the right panel (auto-updates on save)
+6. **Switch between projects** by clicking on them in the sidebar
 
 ## Project Structure
 
@@ -54,8 +58,10 @@ frontend/
 │   ├── components/
 │   │   ├── Header.jsx          # Top navigation bar
 │   │   ├── Header.css
-│   │   ├── ChatPanel.jsx        # Left chat panel
-│   │   ├── ChatPanel.css
+│   │   ├── ProjectList.jsx     # Sidebar project list
+│   │   ├── ProjectList.css
+│   │   ├── CodeEditor.jsx      # Code editor with tabs
+│   │   ├── CodeEditor.css
 │   │   ├── PreviewPanel.jsx    # Right preview panel
 │   │   └── PreviewPanel.css
 │   ├── services/
@@ -70,14 +76,23 @@ frontend/
 
 ## Features in Detail
 
-### Chat Panel
-- Suggestion chips for quick prompts
-- Message history display
-- Loading indicators during AI generation
-- Input field with action buttons
+### Project List (Sidebar)
+- List of all user projects
+- Create new project button
+- Click to select and load project
+- Active project highlighting
+
+### Code Editor
+- Three tabs: HTML, CSS, JavaScript
+- Syntax highlighting ready (monospace font)
+- Auto-save after 1 second of inactivity
+- Unsaved changes indicator
+- File info display
 
 ### Preview Panel
-- Live iframe preview of generated pages
+- Live iframe preview of web pages
+- Auto-refreshes on file save
+- Loading indicator
 - Placeholder when no project is loaded
 - Footer with help and community links
 
@@ -85,6 +100,7 @@ frontend/
 - Project name display
 - Navigation icons (Preview, Code, Database, Settings)
 - Search input
+- Refresh button
 - Publish button
 - User avatar
 
@@ -93,8 +109,9 @@ frontend/
 The frontend communicates with the backend API through the `api.js` service:
 
 - **Authentication**: Auto-registers/logs in demo user
-- **Projects**: Creates projects from chat prompts
-- **Preview**: Fetches and displays generated web pages
+- **Projects**: Create, list, update, delete projects
+- **Files**: Get and update HTML, CSS, JS files
+- **Preview**: Fetches and displays live preview
 
 ## Development Notes
 
@@ -109,7 +126,7 @@ The frontend communicates with the backend API through the `api.js` service:
 **Preview not loading?**
 - Ensure backend is running on `http://localhost:8000`
 - Check browser console for CORS errors
-- Verify OpenAI API key is set in backend `.env`
+- Verify project files are saved correctly
 
 **Authentication errors?**
 - Backend database might need to be reset

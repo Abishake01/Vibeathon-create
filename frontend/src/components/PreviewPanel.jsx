@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './PreviewPanel.css';
 
-const PreviewPanel = ({ projectId, previewUrl }) => {
+const PreviewPanel = ({ projectId, previewUrl, isLoading }) => {
   const [iframeKey, setIframeKey] = useState(0);
 
   useEffect(() => {
@@ -12,7 +12,12 @@ const PreviewPanel = ({ projectId, previewUrl }) => {
 
   return (
     <div className="preview-panel">
-      {previewUrl ? (
+      {isLoading ? (
+        <div className="preview-placeholder">
+          <div className="loading-spinner"></div>
+          <p className="placeholder-text">Loading...</p>
+        </div>
+      ) : previewUrl ? (
         <iframe
           key={iframeKey}
           src={previewUrl}

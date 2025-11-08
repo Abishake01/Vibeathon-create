@@ -1,0 +1,189 @@
+.project-list {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: #1a1a1a;
+  border-right: 1px solid #2a2a2a;
+  width: 250px;
+}
+
+.project-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.project-list-header h3 {
+  margin: 0;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.create-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background-color: #3b82f6;
+  color: white;
+  border-radius: 6px;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+
+.create-btn:hover {
+  background-color: #2563eb;
+}
+
+.create-form {
+  padding: 16px;
+  border-bottom: 1px solid #2a2a2a;
+  background-color: #1e1e1e;
+}
+
+.create-input {
+  width: 100%;
+  padding: 8px 12px;
+  background-color: #2a2a2a;
+  border: 1px solid #3a3a3a;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 14px;
+  margin-bottom: 8px;
+  outline: none;
+}
+
+.create-input:focus {
+  border-color: #3b82f6;
+}
+
+.create-form-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.submit-btn,
+.cancel-btn {
+  flex: 1;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.submit-btn {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.submit-btn:hover {
+  opacity: 0.9;
+}
+
+.cancel-btn {
+  background-color: #2a2a2a;
+  color: #fff;
+}
+
+.cancel-btn:hover {
+  background-color: #3a3a3a;
+}
+
+.projects-container {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.empty-state {
+  padding: 32px 16px;
+  text-align: center;
+  color: #666;
+}
+
+.empty-state p {
+  margin: 8px 0;
+}
+
+.empty-hint {
+  font-size: 12px;
+  color: #555;
+}
+
+.projects-list {
+  list-style: none;
+  margin: 0;
+  padding: 8px;
+}
+
+.project-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  margin-bottom: 4px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.project-item:hover {
+  background-color: #2a2a2a;
+}
+
+.project-item.active {
+  background-color: #1e3a5f;
+}
+
+.project-icon {
+  font-size: 20px;
+}
+
+.project-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.project-name {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.project-description {
+  color: #888;
+  font-size: 12px;
+  margin-top: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Scrollbar styling */
+.projects-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.projects-container::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+
+.projects-container::-webkit-scrollbar-thumb {
+  background: #3a3a3a;
+  border-radius: 3px;
+}
+
+.projects-container::-webkit-scrollbar-thumb:hover {
+  background: #4a4a4a;
+}
+

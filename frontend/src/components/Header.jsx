@@ -1,7 +1,7 @@
 import React from 'react';
 import './Header.css';
 
-const Header = ({ projectName = 'Coffee Shop Page', isLocked = false }) => {
+const Header = ({ projectName = 'New Project', isLocked = false, onRefresh }) => {
   return (
     <header className="app-header">
       <div className="header-left">
@@ -46,7 +46,7 @@ const Header = ({ projectName = 'Coffee Shop Page', isLocked = false }) => {
       </div>
 
       <div className="header-right">
-        <button className="icon-btn" title="Refresh">
+        <button className="icon-btn" title="Refresh" onClick={onRefresh || (() => {})}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <polyline points="23 4 23 10 17 10"></polyline>
             <polyline points="1 20 1 14 7 14"></polyline>

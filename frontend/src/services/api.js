@@ -49,10 +49,9 @@ export const authAPI = {
 };
 
 export const projectsAPI = {
-  create: async (name, prompt, description = '') => {
-    const response = await api.post('/projects/create', {
+  create: async (name, description = '') => {
+    const response = await api.post('/projects', {
       name,
-      prompt,
       description,
     });
     return response.data;
@@ -68,8 +67,32 @@ export const projectsAPI = {
     return response.data;
   },
 
+  update: async (projectId, name, description) => {
+    const response = await api.patch(`/projects/${projectId}`, {
+      name,
+      description,
+    });
+    return response.data;
+  },
+
+  delete: async (projectId) => {
+    await api.delete(`/projects/${projectId}`);
+  },
+
   getFiles: async (projectId) => {
     const response = await api.get(`/projects/${projectId}/files`);
+    return response.data;
+  },
+
+  getFile: async (projectId, filename) => {
+    const response = await api.get(`/projects/${projectId}/files/${filename}`);
+    return response.data;
+  },
+
+  updateFile: async (projectId, filename, content) => {
+    const response = await api.put(`/projects/${projectId}/files/${filename}`, {
+      content,
+    });
     return response.data;
   },
 

@@ -1,86 +1,166 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import './App.css';
 import Header from './components/Header';
-import ChatPanel from './components/ChatPanel';
+import ProjectList from './components/ProjectList';
+import CodeEditor from './components/CodeEditor';
 import PreviewPanel from './components/PreviewPanel';
 import { projectsAPI, authAPI } from './services/api';
 
 function App() {
-  const [isLoading, setIsLoading] = useState(false);
+  const [projects, setProjects] = useState([]);
   const [currentProject, setCurrentProject] = useState(null);
+  const [projectFiles, setProjectFiles] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(null);
+  const [autoSaveTimer, setAutoSaveTimer] = useState(null);
 
   useEffect(() => {
-    // Check if user is authenticated, if not, auto-register/login
+    // Auto-authenticate
     if (!authAPI.isAuthenticated()) {
-      // Auto-register a demo user (in production, implement proper auth flow)
       handleAutoAuth();
+    } else {
+      loadProjects();
     }
   }, []);
 
+  useEffect(() => {
+    if (currentProject) {
+      loadProjectFiles(currentProject.id);
+    }
+  }, [currentProject]);
+
   const handleAutoAuth = async () => {
     try {
-      // Try to login with demo credentials
       const demoEmail = 'demo@example.com';
       const demoPassword = 'demo123456';
       
       try {
         await authAPI.login(demoEmail, demoPassword);
       } catch (error) {
-        // If login fails, register the user
         if (error.response?.status === 401 || error.response?.status === 404) {
           await authAPI.register(demoEmail, 'demo', demoPassword);
           await authAPI.login(demoEmail, demoPassword);
         }
       }
+      loadProjects();
     } catch (error) {
       console.error('Auth error:', error);
     }
   };
 
-  const handleSendMessage = async (message) => {
-    if (!message.trim()) return;
-
-    setIsLoading(true);
-
+  const loadProjects = async () => {
     try {
-      // Extract project name from message or use default
-      const projectName = message.length > 30 
-        ? message.substring(0, 30) + '...' 
-        : message;
-
-      // Create project via API
-      const response = await projectsAPI.create(
-        projectName,
-        message,
-        `Generated from prompt: ${message}`
-      );
-
-      setCurrentProject(response.project_id);
-      setPreviewUrl(projectsAPI.getPreviewUrl(response.project_id));
+      const data = await projectsAPI.list();
+      setProjects(data);
     } catch (error) {
-      console.error('Error creating project:', error);
-      const errorMessage = error.response?.data?.detail || error.message || 'Failed to create project';
-      alert(`Error: ${errorMessage}\n\nPlease ensure:\n1. Backend server is running on http://localhost:8000\n2. OpenAI API key is configured in backend/.env`);
+      console.error('Error loading projects:', error);
+    }
+  };
+
+  const loadProjectFiles = async (projectId) => {
+    try {
+      setIsLoading(true);
+      const data = await projectsAPI.getFiles(projectId);
+      setProjectFiles(data.files);
+      setPreviewUrl(projectsAPI.getPreviewUrl(projectId));
+    } catch (error) {
+      console.error('Error loading project files:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
+  const handleCreateProject = async (name) => {
+    try {
+      const project = await projectsAPI.create(name, '');
+      setProjects(prev => [...prev, project]);
+      setCurrentProject(project);
+      await loadProjectFiles(project.id);
+    } catch (error) {
+      console.error('Error creating project:', error);
+      alert('Failed to create project');
+    }
+  };
+
+  const handleSelectProject = async (projectId) => {
+    const project = projects.find(p => p.id === projectId);
+    if (project) {
+      setCurrentProject(project);
+    }
+  };
+
+  const handleFileChange = useCallback((filename, content) => {
+    if (!currentProject) return;
+
+    // Clear existing timer
+    if (autoSaveTimer) {
+      clearTimeout(autoSaveTimer);
+    }
+
+    // Update local state immediately
+    setProjectFiles(prev => {
+      const updated = prev.map(file => 
+        file.filename === filename ? { ...file, content } : file
+      );
+      return updated;
+    });
+
+    // Auto-save after 1 second of inactivity
+    const timer = setTimeout(async () => {
+      try {
+        await projectsAPI.updateFile(currentProject.id, filename, content);
+        // Refresh preview
+        if (previewUrl) {
+          setPreviewUrl(prev => prev + '?t=' + Date.now());
+        }
+      } catch (error) {
+        console.error('Error saving file:', error);
+      }
+    }, 1000);
+
+    setAutoSaveTimer(timer);
+  }, [currentProject, autoSaveTimer, previewUrl]);
+
+  const handleRefresh = () => {
+    if (currentProject && previewUrl) {
+      setPreviewUrl(prev => prev.split('?')[0] + '?t=' + Date.now());
+    }
+  };
+
   return (
     <div className="app">
-      <Header projectName={currentProject ? 'Coffee Shop Page' : 'New Project'} />
+      <Header 
+        projectName={currentProject?.name || 'New Project'} 
+        onRefresh={handleRefresh}
+      />
       <div className="app-content">
-        <div className="left-panel">
-          <ChatPanel 
-            onSendMessage={handleSendMessage} 
-            isLoading={isLoading}
+        <div className="sidebar">
+          <ProjectList
+            projects={projects}
+            onSelectProject={handleSelectProject}
+            onCreateProject={handleCreateProject}
+            currentProjectId={currentProject?.id}
           />
         </div>
-        <div className="right-panel">
+        <div className="editor-panel">
+          {currentProject ? (
+            <CodeEditor
+              projectId={currentProject.id}
+              onFileChange={handleFileChange}
+              initialFiles={projectFiles}
+            />
+          ) : (
+            <div className="empty-editor">
+              <div className="empty-logo">b</div>
+              <p>Select a project or create a new one to start coding</p>
+            </div>
+          )}
+        </div>
+        <div className="preview-panel">
           <PreviewPanel 
-            projectId={currentProject}
+            projectId={currentProject?.id}
             previewUrl={previewUrl}
+            isLoading={isLoading}
           />
         </div>
       </div>
