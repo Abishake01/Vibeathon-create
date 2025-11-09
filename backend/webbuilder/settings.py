@@ -45,6 +45,9 @@ MIDDLEWARE = [
 # CSRF settings for API
 CSRF_TRUSTED_ORIGINS = ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173', 'http://127.0.0.1:3000']
 
+# Disable APPEND_SLASH to prevent 301 redirects that break iframes
+APPEND_SLASH = False
+
 ROOT_URLCONF = 'webbuilder.urls'
 
 TEMPLATES = [
@@ -107,6 +110,9 @@ CORS_ALLOW_ALL_ORIGINS = True  # In production, specify actual origins
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_HEADERS = ['*']
 CORS_ALLOWED_METHODS = ['*']
+
+# Allow iframe embedding for preview (same origin)
+X_FRAME_OPTIONS = 'SAMEORIGIN'
 
 # Projects directory
 PROJECTS_DIR = os.getenv('PROJECTS_DIR', str(BASE_DIR / 'projects'))

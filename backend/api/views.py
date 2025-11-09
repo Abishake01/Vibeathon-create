@@ -7,6 +7,7 @@ import re
 from django.http import JsonResponse, HttpResponse, StreamingHttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
+from django.views.decorators.clickjacking import xframe_options_exempt
 from django.utils.decorators import method_decorator
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -243,6 +244,7 @@ def update_file(request, project_id, filename):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@xframe_options_exempt
 @api_view(['GET'])
 def preview_project(request, project_id):
     """Render the project as a live preview (combine HTML, CSS, JS). No authentication required."""
@@ -301,7 +303,9 @@ def preview_project(request, project_id):
                         html_content = html_content.replace("</body>", f"<script>\n{js_content}\n</script>\n</body>")
                     preview_html = html_content
                 
-                return HttpResponse(preview_html, content_type='text/html')
+                response = HttpResponse(preview_html, content_type='text/html')
+                response['Access-Control-Allow-Origin'] = '*'
+                return response
         except:
             pass
         
@@ -360,7 +364,9 @@ def preview_project(request, project_id):
         
         preview_html = html_content
     
-    return HttpResponse(preview_html, content_type='text/html')
+    response = HttpResponse(preview_html, content_type='text/html')
+    response['Access-Control-Allow-Origin'] = '*'
+    return response
 
 
 # Health check
@@ -373,6 +379,8 @@ def health_check(request):
 # AI endpoints
 async def stream_project_creation(prompt: str, project_name: str, provider_name: str):
     """Stream project creation with step-by-step updates."""
+    from asgiref.sync import sync_to_async
+    
     project_id = None
     total_tokens_used = 0
     
@@ -431,11 +439,16 @@ async def stream_project_creation(prompt: str, project_name: str, provider_name:
         # Step 3: Create project in database
         yield f"data: {json.dumps({'type': 'thinking', 'message': 'Setting up project structure...'})}\n\n"
         
-        project = Project.objects.create(
-            user_id=None,
-            name=project_name,
-            description=description
-        )
+        # Use sync_to_async to wrap Django ORM call
+        def create_project_sync():
+            return Project.objects.create(
+                user_id=None,
+                name=project_name,
+                description=description
+            )
+        
+        create_project_async = sync_to_async(create_project_sync)
+        project = await create_project_async()
         project_id = project.id
         
         await asyncio.sleep(0.3)

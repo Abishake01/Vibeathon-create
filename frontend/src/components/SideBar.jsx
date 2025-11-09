@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import HoverPopup from "./HoverPopup";
 import { useLocation } from "react-router-dom";
-import { Zap, Workflow, Puzzle, Rocket } from "lucide-react";
+import { Zap, Workflow, Puzzle, Rocket, X } from "lucide-react";
 
 const icons = [
   { id: "logo", icon: Zap, label: "App" },
@@ -54,71 +54,76 @@ export default function Sidebar() {
   return (
     <div
       ref={sidebarRef}
-      className={`sidebar fixed left-0 top-0 h-screen flex flex-col items-center py-6 z-40 glass ${
-        expanded ? "sidebar--expanded" : ""
-      }`}
+      className={`fixed left-0 top-0 h-screen w-[70px] flex flex-col items-center py-6 z-40 bg-[#2B2E33] border-r border-[#3a3a3a] ${
+        expanded ? "w-[240px]" : ""
+      } transition-all duration-300`}
       onMouseLeave={handleMouseLeave}
     >
-      {expanded && (
-        <button
-          className="sidebar-close"
-          aria-label="Close"
-          onClick={() => setExpanded(false)}
-        >
-          ×
-        </button>
-      )}
-      {/* top logo / home */}
-      <div className="mb-8">
+      {/* Top section with logo and close button */}
+      <div className="w-full flex items-center justify-between px-3 mb-8">
         <div
-          className="sidebar-logo"
+          className="w-10 h-10 rounded-full flex items-center justify-center cursor-pointer border-2 border-sky-400/30 bg-sky-400/10 hover:bg-sky-400/20 transition-colors"
           title="App"
           onClick={() => {
             setActive(null);
             setExpanded((e) => !e);
           }}
         >
-          <Zap size={24} strokeWidth={2.5} />
+          <Zap size={20} strokeWidth={2.5} className="text-white" />
         </div>
+        {expanded && (
+          <button
+            className="w-8 h-8 rounded-full flex items-center justify-center cursor-pointer border-2 border-sky-400/30 bg-transparent hover:bg-sky-400/10 transition-colors text-white"
+            aria-label="Close"
+            onClick={() => setExpanded(false)}
+          >
+            <X size={18} strokeWidth={2.5} />
+          </button>
+        )}
       </div>
 
-      <div className="flex flex-col gap-4 items-stretch flex-1 w-full pr-2">
+      {/* Navigation items */}
+      <div className="flex flex-col gap-2 items-stretch flex-1 w-full px-2">
         {icons.slice(1).map((item) => {
           const IconComponent = item.icon;
+          const isActive = active === item.id || clickedItem === item.id;
           return (
-            <div key={item.id} className="relative group sidebar-row">
+            <div key={item.id} className="relative group">
               <button
                 onClick={() => handleIconClick(item.id)}
                 onMouseEnter={() => handleMouseEnter(item.id)}
-                className={`sidebar-icon ${
-                  active === item.id || clickedItem === item.id ? "active" : ""
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 ${
+                  isActive
+                    ? "bg-sky-500/20 border border-sky-400/30"
+                    : "bg-transparent hover:bg-white/5 border border-transparent"
                 }`}
                 aria-label={item.label}
               >
-                <IconComponent size={24} strokeWidth={2} />
+                <IconComponent 
+                  size={20} 
+                  strokeWidth={2} 
+                  className={isActive ? "text-sky-400" : "text-white/70"} 
+                />
+                {expanded && (
+                  <span className={`text-sm font-medium ${isActive ? "text-sky-400" : "text-white/90"}`}>
+                    {item.label}
+                  </span>
+                )}
               </button>
-              {/* label shows when expanded - now with hover functionality */}
-              {expanded && (
-                <span
-                  className="sidebar-label"
-                  onMouseEnter={() => handleMouseEnter(item.id)}
-                  onMouseLeave={() => !clickedItem && setActive(null)}
-                  onClick={() => handleIconClick(item.id)}
-                  style={{ cursor: "pointer" }}
-                >
-                  {item.label}
-                </span>
-              )}
 
-              {/* Tooltip */}
-              <div className={`sidebar-tooltip`}>{item.label}</div>
+              {/* Tooltip - shows when not expanded */}
+              {!expanded && (
+                <div className="absolute left-full ml-2 px-2 py-1 bg-[#141416] text-white text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 border border-white/10">
+                  {item.label}
+                </div>
+              )}
 
               {/* Popup */}
               {(active === item.id || clickedItem === item.id) && (
                 <div
                   onMouseEnter={() => setActive(item.id)}
                   onMouseLeave={() => !clickedItem && setActive(null)}
-                  className={expanded ? "popup-wrapper-expanded" : ""}
+                  className="absolute left-full ml-2 top-0 z-50"
                 >
                   <HoverPopup
                     type={item.id}
@@ -132,10 +137,8 @@ export default function Sidebar() {
         })}
       </div>
 
-      {/* bottom icons */}
-      <div className="mt-auto flex flex-col gap-6 items-center w-full px-2">
-        <div className="sidebar-bottom w-10 h-10">PM</div>
-      </div>
+      {/* Bottom user avatar */}
+      
     </div>
   );
 }

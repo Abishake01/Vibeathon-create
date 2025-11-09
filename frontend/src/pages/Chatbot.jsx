@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Plus } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/SideBar";
 
 /**
@@ -38,10 +39,10 @@ export default function Chatbot() {
               transition={{ duration: 0.6 }}
               className="text-center text-3xl md:text-4xl font-bold text-white mb-3"
             >
-              What will you{" "}
-              <span className="bg-linear-to-r from-sky-400 to-sky-200 bg-clip-text text-transparent">
+              What will you
+
                 build
-              </span>{" "}
+              
               today?
             </motion.h1>
 
