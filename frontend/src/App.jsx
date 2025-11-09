@@ -10,10 +10,10 @@ import CustomCursor from "./components/CustomCursor";
 export default function App() {
   return (
     <BrowserRouter>
-      <div className="relative min-h-screen bg-black">
+      <div className="relative min-h-screen bg-black overflow-hidden">
         <CustomCursor />
         <SubtleParticles />
-        <div className="relative z-10">
+        <div className="relative z-10 w-full h-screen overflow-hidden">
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/chatbot" element={<Chatbot />} />

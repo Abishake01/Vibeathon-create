@@ -31,12 +31,15 @@
     min-width: 320px;
     min-height: 100vh;
     overflow: hidden;
+    width: 100vw;
+    height: 100vh;
   }
 
   #root {
-    width: 100%;
+    width: 100vw;
     height: 100vh;
     overflow: hidden;
+    position: relative;
   }
 
   button {
@@ -96,6 +99,7 @@
   .hover-popup {
     position: absolute;
     width: 320px;
+    max-width: calc(100vw - 280px);
     background: #141416;
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 12px;
@@ -108,6 +112,13 @@
 
   .hover-popup--from-expanded {
     left: 240px;
+  }
+
+  @media (max-width: 768px) {
+    .hover-popup {
+      max-width: calc(100vw - 100px);
+      width: 280px;
+    }
   }
 
   .hover-popup__header {

@@ -22,11 +22,11 @@ export default function Chatbot() {
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center bg-transparent">
+    <div className="relative w-full h-screen flex items-center justify-center bg-transparent overflow-hidden">
       <Sidebar />
 
-      <div className="relative z-10 w-full min-h-screen flex items-center justify-center pl-[90px] px-6 py-8">
-        <div className="w-full max-w-4xl">
+      <div className="relative z-10 w-full h-full flex items-center justify-center pl-[70px] pr-6 overflow-x-hidden">
+        <div className="w-full max-w-4xl px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

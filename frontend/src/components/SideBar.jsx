@@ -54,10 +54,11 @@ export default function Sidebar() {
   return (
     <div
       ref={sidebarRef}
-      className={`fixed left-0 top-0 h-screen w-[70px] flex flex-col items-center py-6 z-40 bg-[#2B2E33] border-r border-[#3a3a3a] ${
-        expanded ? "w-[240px]" : ""
-      } transition-all duration-300`}
+      className={`fixed left-0 top-0 h-screen flex flex-col items-center py-6 z-40 bg-Transparent  transition-all duration-300 ${
+        expanded ? "w-[240px]" : "w-[70px]"
+      }`}
       onMouseLeave={handleMouseLeave}
+      style={{ overflow: '' }}
     >
       {/* Top section with logo and close button */}
       <div className="w-full flex items-center justify-between px-3 mb-8">
