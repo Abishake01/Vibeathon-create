@@ -306,8 +306,15 @@ async def create_project_with_ai_stream(
     Create a project using AI with streaming responses.
     Shows todo list generation, task completion, and code generation in real-time.
     """
+    # Validate prompt is not empty
+    if not project_data.prompt or not project_data.prompt.strip():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Prompt is required and cannot be empty"
+        )
+    
     project_name = project_data.name or project_data.prompt[:50]
-    provider_name = project_data.provider or "langchain"
+    provider_name = project_data.provider or "ollama"
     
     return StreamingResponse(
         stream_project_creation(project_data.prompt, project_name, provider_name, db),

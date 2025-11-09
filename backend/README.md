@@ -237,3 +237,4 @@ The application uses SQLite by default. To switch to PostgreSQL:
 - Add database migrations (Alembic)
 - Set up file backup strategy
 
+uvicorn app.main:app --reload

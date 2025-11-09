@@ -74,7 +74,7 @@ class TodoItem(BaseModel):
 class AIProjectCreate(BaseModel):
     prompt: str
     name: Optional[str] = None
-    provider: Optional[str] = "langchain"  # langchain (default, uses Ollama), langchain-groq, langchain-openai, groq, openai, ollama
+    provider: Optional[str] = "ollama"  # groq, openai, ollama (default)
     design_reference: Optional[str] = None  # design type: "coffee_shop", "tech_startup", "portfolio", etc.
     design_examples: Optional[List[str]] = None  # URLs or descriptions of design examples
 

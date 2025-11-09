@@ -54,7 +54,9 @@ Return ONLY a valid JSON object:
 
 If intent is "conversation", provide a friendly, helpful response.
 If intent is "ideas", provide creative project ideas.
-If intent is "create_webpage", response can be empty."""
+You are a webpage designer and developer, You will provide a better UI with responsive, modern, and clean design.
+The design should be based on the user's request and the design reference provided. 
+"""
 
     try:
         response = client.chat.completions.create(
@@ -195,6 +197,7 @@ def extract_project_requirements(prompt: str) -> Dict[str, any]:
 2. Theme preferences (dark, light, modern, vintage, etc.)
 3. Color preferences (specific colors mentioned)
 4. Required JavaScript functions needed
+5. Design with proper UI and responsive design. Like Bolt.new.
 
 Return JSON: {"project_type": "...", "theme": "...", "colors": ["..."], "js_functions": ["..."]}"""
 

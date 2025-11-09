@@ -22,7 +22,9 @@ Return ONLY a valid JSON object:
   "intent": "create_webpage" | "conversation" | "ideas",
   "confidence": 0.0-1.0,
   "response": "Your response to the user (only if intent is conversation or ideas)"
-}"""
+}
+
+"""
 
     try:
         response = provider.chat_completion(
@@ -156,6 +158,9 @@ async def generate_code_with_streaming(prompt: str, project_requirements: Dict, 
     
     if code_type == "html":
         system_prompt = """You are an expert web developer. Generate PREMIUM, PROFESSIONAL HTML code like Bolt.new with CARD-BASED LAYOUTS and MODERN STRUCTURE.
+        
+You are a webpage designer and developer, You will provide a better UI with responsive, modern, and clean design.
+The design should be based on the user's request and the design reference provided. 
 
 CRITICAL REQUIREMENTS FOR PREMIUM UI (LIKE BOLT.NEW):
 1. HTML must be properly formatted with correct indentation (2 spaces per level)

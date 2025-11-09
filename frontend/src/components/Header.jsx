@@ -1,19 +1,17 @@
 import React from 'react';
-import './Header.css';
 
 const Header = ({ projectName = 'New Project', isLocked = false, onRefresh, currentView = 'preview', onViewChange }) => {
   return (
-    <header className="app-header">
-      <div className="header-left"> 
-       
-        <span className="project-name">{projectName}</span>
-        {isLocked && <span className="lock-icon">🔒</span>}
+    <header className="flex items-center justify-between px-5 py-3 bg-[#1a1a1a] border-b border-[#2a2a2a] h-14 sticky top-0 z-[100]">
+      <div className="flex items-center gap-3 flex-1"> 
+        <span className="text-white text-sm font-medium">{projectName}</span>
+        {isLocked && <span className="ml-2 text-sm opacity-70">🔒</span>}
       </div>
 
-      <div className="header-center">
-        <div className="icon-group">
+      <div className="flex items-center gap-3 flex-1 justify-center">
+        <div className="flex gap-1">
           <button 
-            className={`icon-btn ${currentView === 'preview' ? 'active' : ''}`} 
+            className={`w-8 h-8 border-none bg-transparent text-[#888] cursor-pointer rounded-md flex items-center justify-center transition-all hover:bg-[#2a2a2a] hover:text-white ${currentView === 'preview' ? 'text-blue-500 bg-[#1e3a5f]' : ''}`} 
             title="Preview"
             onClick={() => onViewChange && onViewChange('preview')}
           >
@@ -23,7 +21,7 @@ const Header = ({ projectName = 'New Project', isLocked = false, onRefresh, curr
             </svg>
           </button>
           <button 
-            className={`icon-btn ${currentView === 'code' ? 'active' : ''}`} 
+            className={`w-8 h-8 border-none bg-transparent text-[#888] cursor-pointer rounded-md flex items-center justify-center transition-all hover:bg-[#2a2a2a] hover:text-white ${currentView === 'code' ? 'text-blue-500 bg-[#1e3a5f]' : ''}`} 
             title="Code"
             onClick={() => onViewChange && onViewChange('code')}
           >
@@ -32,12 +30,11 @@ const Header = ({ projectName = 'New Project', isLocked = false, onRefresh, curr
               <polyline points="8 6 2 12 8 18"></polyline>
             </svg>
           </button>
- 
         </div>
       </div>
 
-      <div className="header-right">
-        <button className="icon-btn" title="Refresh" onClick={onRefresh || (() => {})}>
+      <div className="flex items-center gap-3 flex-1 justify-end">
+        <button className="w-8 h-8 border-none bg-transparent text-[#888] cursor-pointer rounded-md flex items-center justify-center transition-all hover:bg-[#2a2a2a] hover:text-white" title="Refresh" onClick={onRefresh || (() => {})}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <polyline points="23 4 23 10 17 10"></polyline>
             <polyline points="1 20 1 14 7 14"></polyline>
@@ -45,7 +42,7 @@ const Header = ({ projectName = 'New Project', isLocked = false, onRefresh, curr
           </svg>
         </button>
         <button 
-          className="icon-btn" 
+          className="w-8 h-8 border-none bg-transparent text-[#888] cursor-pointer rounded-md flex items-center justify-center transition-all hover:bg-[#2a2a2a] hover:text-white" 
           title="Expand Fullscreen"
           onClick={() => {
             if (!document.fullscreenElement) {
@@ -61,8 +58,6 @@ const Header = ({ projectName = 'New Project', isLocked = false, onRefresh, curr
             <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
           </svg>
         </button>
-         
-      
       </div>
     </header>
   );

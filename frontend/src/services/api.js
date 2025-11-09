@@ -95,16 +95,30 @@ export const projectsAPI = {
 };
 
 export const aiAPI = {
-  createProject: async (prompt, name = null, provider = 'groq', onStream = null) => {
+  createProject: async (prompt, name = null, provider = 'ollama', onStream = null) => {
     if (onStream) {
       // Use streaming endpoint
+      // Build request body - only include fields that are not null/undefined
+      const requestBody = { prompt };
+      if (name !== null && name !== undefined) {
+        requestBody.name = name;
+      }
+      if (provider !== null && provider !== undefined) {
+        requestBody.provider = provider;
+      }
+      
       const response = await fetch(`${API_BASE_URL}/ai/create-project-stream`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ prompt, name, provider }),
+        body: JSON.stringify(requestBody),
       });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ detail: 'Unknown error' }));
+        throw new Error(errorData.detail || `HTTP ${response.status}: ${response.statusText}`);
+      }
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
